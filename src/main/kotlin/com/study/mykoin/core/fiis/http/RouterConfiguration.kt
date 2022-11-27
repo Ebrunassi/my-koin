@@ -1,6 +1,6 @@
-package com.study.mykoin.api.http
+package com.study.mykoin.core.fiis.http
 
-import com.study.mykoin.api.http.controller.FiiController
+import com.study.mykoin.core.fiis.http.controller.FiiController
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType

@@ -1,4 +1,4 @@
-package com.study.mykoin.kafka.config
+package com.study.mykoin.core.fiis.kafka.config
 
 import com.launchdarkly.eventsource.EventHandler
 import com.launchdarkly.eventsource.MessageEvent

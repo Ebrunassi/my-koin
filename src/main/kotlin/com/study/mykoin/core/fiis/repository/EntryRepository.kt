@@ -1,4 +1,4 @@
-package com.study.mykoin.repository
+package com.study.mykoin.core.fiis.repository
 
 import org.springframework.stereotype.Repository
 

@@ -1,8 +1,7 @@
-package com.study.mykoin.api.http.controller
+package com.study.mykoin.core.fiis.http.controller
 
 import com.fasterxml.jackson.module.kotlin.jsonMapper
-import com.study.mykoin.kafka.config.KafkaFactory
-import com.study.mykoin.kafka.consumer.EntryConsumer
+import com.study.mykoin.core.fiis.kafka.config.KafkaFactory
 import kotlinx.coroutines.reactor.awaitSingle
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -43,7 +42,8 @@ class FiiController {
                 jsonMapper().writeValueAsString(it)     // Value
             )
 
-            KafkaProducer<String, String>(factory.getProperties()).use { producer ->        // A new Kafka producer is created and closed after each iteration
+
+            KafkaProducer<String, String>(factory.getProducerProperties()).use { producer ->        // A new Kafka producer is created and closed after each iteration
                 producer.send(producerRecord) {
                         record: RecordMetadata, exception: Exception? ->
                     if(exception == null || exception.stackTrace.isEmpty()){
