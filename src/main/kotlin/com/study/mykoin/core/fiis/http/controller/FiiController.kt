@@ -2,6 +2,8 @@ package com.study.mykoin.core.fiis.http.controller
 
 import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.study.mykoin.core.fiis.kafka.config.KafkaFactory
+import com.study.mykoin.core.fiis.model.FiiDTO
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactor.awaitSingle
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -27,11 +29,11 @@ class FiiController {
         const val FIIS_TOPIC = "fiis_topic"
     }
 
-    private class FiiDTO(val name: String, val quantity: Int, val averagePrice: Double, var totalInvested: Double, val type: String)
+    //private class FiiDTO(val name: String, val quantity: Int, val averagePrice: Double, var totalInvested: Double, val type: String)
     private class Response(val description: String)
 
     suspend fun postEntry(request: ServerRequest): ServerResponse {
-
+        log.info("Hit post...")
         mapToEntryDTO(request).apply {
             totalInvested = averagePrice * quantity
         }.let {

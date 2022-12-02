@@ -1,6 +1,7 @@
 package com.study.mykoin.core.fiis.http
 
 import com.study.mykoin.core.fiis.http.controller.FiiController
+import kotlinx.coroutines.FlowPreview
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType

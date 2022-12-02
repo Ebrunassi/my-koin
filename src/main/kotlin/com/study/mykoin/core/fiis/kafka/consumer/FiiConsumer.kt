@@ -8,23 +8,23 @@ import kotlinx.coroutines.*
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.Duration
 import java.util.*
 
 @Configuration
-class FiiConsumer(private val kafkaFactory: KafkaFactory){
+class FiiConsumer{
     private val logger = LoggerFactory.getLogger("FiiConsumer")
     private lateinit var consumerJob: Deferred<Unit>
+
+    @Autowired
+    private lateinit var kafkaFactory: KafkaFactory
     @Autowired
     private lateinit var entryService: EntryService
 
-    //@PostConstruct -- TODO - use this one
-    @Bean
+    @PostConstruct
     fun init() {
         try {
-            logger.info("Starting consumer...")
             consumerJob = startConsumer()
         } catch (e: Exception) {
             e.printStackTrace()
@@ -39,8 +39,8 @@ class FiiConsumer(private val kafkaFactory: KafkaFactory){
 
         // Load properties from disk.
         val props = kafkaFactory.getConsumerProperties()
-        // Add additional properties.
 
+        // Add additional properties.
         val consumer = KafkaConsumer<String, String>(props).apply {
             subscribe(listOf(topic))
         }

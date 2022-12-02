@@ -7,6 +7,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+@Deprecated("Not used at the moment. Delete it if you really don't use that")
 class EntryEventHandler(val kafkaProducer: KafkaProducer<String, String>, val topic: String): EventHandler {
 
     private val log : Logger = LoggerFactory.getLogger(EntryEventHandler::class.qualifiedName)

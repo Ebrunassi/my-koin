@@ -59,3 +59,38 @@ services:
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:9092 --list
       "
+  mongo-express:
+    image: mongo-express
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo-database
+      ME_CONFIG_BASICAUTH_USERNAME: mykoin
+      ME_CONFIG_BASICAUTH_PASSWORD: mykoin2022!
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: mykoin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: mykoin2022!
+    links:
+      - mongo-database
+    depends_on:
+      - mongo-database
+    networks:
+      - mykoin-network
+
+  mongo-database:
+    image: mongo
+    container_name: mongoDB-container
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mykoin
+      MONGO_INITDB_ROOT_PASSWORD: mykoin2022!
+    volumes:
+      - /opt/mykoin/MongoDB:/data/db
+      - /opt/mykoin/MongoDB/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    ports:
+      - "27017:27017"
+    networks:
+      - mykoin-network
+
+networks:
+  mykoin-network:
+    driver: bridge

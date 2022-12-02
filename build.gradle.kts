@@ -25,8 +25,8 @@ repositories {
 }
 
 dependencies {
-    // implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
-    // implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+    implementation("org.springframework.boot:spring-boot-starter-web")
 
     implementation("org.springframework.boot:spring-boot-dependencies:2.7.4")
 
@@ -43,6 +43,8 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-webflux:2.7.5")
     implementation("com.h2database:h2:2.1.214")
+
+    implementation("com.google.code.gson:gson:2.8.2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
