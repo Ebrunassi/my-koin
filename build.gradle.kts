@@ -26,7 +26,7 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    // implementation("org.springframework.boot:spring-boot-starter-web") -- This dependency is breaking the endpoints
 
     implementation("org.springframework.boot:spring-boot-dependencies:2.7.4")
 

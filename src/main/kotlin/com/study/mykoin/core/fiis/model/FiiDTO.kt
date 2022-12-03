@@ -1,3 +1,12 @@
 package com.study.mykoin.core.fiis.model
 
-data class FiiDTO(val name: String, val quantity: Int, val averagePrice: Double, var totalInvested: Double, val type: String)
+import java.util.Date
+
+data class FiiDTO(
+    val name: String,
+    val quantity: Int,
+    val averagePrice: Double,
+    var transactionDate: String?,       // TODO - Create an object to hold this value and also implement logic on it
+    var totalInvested: Double,
+    val type: String
+    )

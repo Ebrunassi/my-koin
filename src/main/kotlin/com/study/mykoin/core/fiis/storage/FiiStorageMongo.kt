@@ -2,13 +2,14 @@ package com.study.mykoin.core.fiis.storage
 
 import com.study.mykoin.core.common.storage.SequenceGenerator
 import com.study.mykoin.domain.fiis.FiiEntry
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.MongoOperations
-import org.springframework.data.repository.CrudRepository
 import org.springframework.stereotype.Repository
 
 @Repository
 class FiiStorageMongo: FiiStorage{
+    private val logger = LoggerFactory.getLogger(FiiStorageMongo::class.java)
     @Autowired
     private lateinit var mongo: MongoOperations
     @Autowired
@@ -16,7 +17,9 @@ class FiiStorageMongo: FiiStorage{
 
     override fun save(entry: FiiEntry) {
         entry.id = sequenceGenerator.genereteSequence(FiiEntry.SEQUENCE_NAME)
+        logger.info("Saving Fii in database")
         mongo.save(entry)
+        logger.info("Saved successfully")
     }
 
 }

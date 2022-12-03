@@ -16,6 +16,12 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.server.ServerRequest
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyValueAndAwait
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 @Component
 class FiiController {
@@ -29,13 +35,19 @@ class FiiController {
         const val FIIS_TOPIC = "fiis_topic"
     }
 
-    //private class FiiDTO(val name: String, val quantity: Int, val averagePrice: Double, var totalInvested: Double, val type: String)
     private class Response(val description: String)
 
+    // TODO - Find a better place to this function
+    fun getActualDate(): String? {
+        val dateFormat: DateFormat = SimpleDateFormat("dd/MM/yyyy")
+        dateFormat.timeZone = TimeZone.getTimeZone("America/Sao_Paulo")
+        return dateFormat.format(Calendar.getInstance().time)
+    }
+
     suspend fun postEntry(request: ServerRequest): ServerResponse {
-        log.info("Hit post...")
         mapToEntryDTO(request).apply {
             totalInvested = averagePrice * quantity
+            transactionDate = transactionDate ?: getActualDate()
         }.let {
 
             val producerRecord: ProducerRecord<String, String> = ProducerRecord(
@@ -43,7 +55,6 @@ class FiiController {
                 it.name,                                // Key
                 jsonMapper().writeValueAsString(it)     // Value
             )
-
 
             KafkaProducer<String, String>(factory.getProducerProperties()).use { producer ->        // A new Kafka producer is created and closed after each iteration
                 producer.send(producerRecord) {

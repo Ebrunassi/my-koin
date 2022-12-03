@@ -5,13 +5,11 @@ import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.springframework.context.annotation.ComponentScan
 import java.util.concurrent.Executors
 import kotlin.system.exitProcess
 
 
 @SpringBootApplication
-//@ComponentScan(basePackages = ["com.study.mykoin.core.fiis","com.study.mykoin.core.common"])
 class MyKoinApplication(){
 
     private val logger = LoggerFactory.getLogger("Application")

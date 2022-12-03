@@ -16,15 +16,16 @@ class EntryService {
     private lateinit var fiiRepository: FiiStorage
 
     fun handler(record: String){
-        val fiIDto = record.mapToFiiDTO()
-        logger.info("Received new message: ${fiIDto.toString()} - ${fiIDto.name}")
-        fiiRepository.save(record.mapToFiiEntity())
+        logger.info("Received new message: ${record}")
+        try {
+            fiiRepository.save(record.mapToFiiEntity())
+        } catch(e: Exception) {
+            logger.error(e.message)
+            e.printStackTrace()
+        }
     }
 }
 
-fun String.mapToFiiDTO(): FiiDTO {
-    return Gson().fromJson(this, FiiDTO::class.java)
-}
 fun String.mapToFiiEntity(): FiiEntry {
     return Gson().fromJson(this, FiiEntry::class.java)
 }
