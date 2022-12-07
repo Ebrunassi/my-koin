@@ -3,7 +3,6 @@ package com.study.mykoin.core.fiis.http.controller
 import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.study.mykoin.core.fiis.kafka.config.KafkaFactory
 import com.study.mykoin.core.fiis.model.FiiDTO
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactor.awaitSingle
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
@@ -18,9 +17,13 @@ import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyValueAndAwait
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.left
+import arrow.core.right
+import com.study.mykoin.core.common.errors.ServiceErrors
+import com.study.mykoin.core.common.response.ServiceResponse
+import com.study.mykoin.helper.handleCall
 import java.util.*
 
 @Component
@@ -44,12 +47,15 @@ class FiiController {
         return dateFormat.format(Calendar.getInstance().time)
     }
 
-    suspend fun postEntry(request: ServerRequest): ServerResponse {
-        mapToEntryDTO(request).apply {
-            totalInvested = averagePrice * quantity
-            transactionDate = transactionDate ?: getActualDate()
-        }.let {
-
+    suspend fun postEntry(request: ServerRequest): ServerResponse =
+        mapToEntryDTO(request)
+            .map { fiiDTO ->
+                fiiDTO.apply {
+                    totalInvested = averagePrice * quantity
+                    transactionDate = transactionDate ?: getActualDate()
+                }
+            }
+         .flatMap {
             val producerRecord: ProducerRecord<String, String> = ProducerRecord(
                 FIIS_TOPIC,
                 it.name,                                // Key
@@ -65,15 +71,17 @@ class FiiController {
                         log.error("no message received: '${exception}'")
                 }
             }
+             //ServiceErrors.BadRequest("Erro!!!!").left()
+             ServiceResponse.EventSubmited("The event was sent successfully!").right()
         }
-        return ServerResponse.status(HttpStatus.CREATED).bodyValueAndAwait(Response("The event was sent successfully!"))
-    }
+         .handleCall()
+
 
     suspend fun getEntry(request: ServerRequest): ServerResponse {
         return ServerResponse.status(HttpStatus.OK).bodyValueAndAwait("")
         // return ServerResponse.status(HttpStatus.OK).json().bodyAndAwait()        // Read https://www.baeldung.com/kotlin/spring-boot-kotlin-coroutines
     }
 
-    private suspend fun mapToEntryDTO(request: ServerRequest): FiiDTO =
-        request.bodyToMono(FiiDTO::class.java).awaitSingle()
+    private suspend fun mapToEntryDTO(request: ServerRequest): Either<ServiceErrors,FiiDTO> =
+        request.bodyToMono(FiiDTO::class.java).awaitSingle().right()
 }

@@ -28,6 +28,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     // implementation("org.springframework.boot:spring-boot-starter-web") -- This dependency is breaking the endpoints
 
+    implementation("io.arrow-kt:arrow-core:1.1.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.4.1")
+
     implementation("org.springframework.boot:spring-boot-dependencies:2.7.4")
 
     // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
