@@ -22,6 +22,8 @@ repositories {
     mavenCentral()
     maven { url = uri("https://repo.spring.io/milestone") }
     maven { url = uri("https://repo.spring.io/snapshot") }
+    maven { url = uri ("https://jitpack.io") }
+
 }
 
 dependencies {
@@ -30,6 +32,10 @@ dependencies {
 
     implementation("io.arrow-kt:arrow-core:1.1.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.4.1")
+
+    // Crawler
+    implementation("com.github.brianmadden:krawler:0.4.4")
+
 
     implementation("org.springframework.boot:spring-boot-dependencies:2.7.4")
 
