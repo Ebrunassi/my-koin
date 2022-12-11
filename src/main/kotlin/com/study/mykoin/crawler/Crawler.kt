@@ -27,7 +27,10 @@ class SimpleExample(config: KrawlConfig = KrawlConfig()) : Krawler(config) {
 
     override fun visit(url: KrawlUrl, doc: KrawlDocument) {
         println("${counter.incrementAndGet()}. Crawling ${url.canonicalForm}")
-        println(doc.parsedDocument.toString())
+        //println(doc.parsedDocument.toString())
+            println(doc.parsedDocument.body().getElementById("dy-info").getElementsByClass("info").first().getElementsByClass("value").text())
+        //println("containing: ${doc.parsedDocument.body().getElementsContainingOwnText("último rendimento").parents().()}")
+
     }
 
     override fun onContentFetchError(url: KrawlUrl, reason: String) {
@@ -47,13 +50,14 @@ class SimpleExample(config: KrawlConfig = KrawlConfig()) : Krawler(config) {
 }
 
 fun main() {
-    val config: KrawlConfig = KrawlConfig(totalPages = 1)
+    val config: KrawlConfig = KrawlConfig(totalPages = 3)
     val k = SimpleExample(config)
 
     // Add a few different hosts to the whitelist
-    val allowedHosts = listOf("statusinvest.com.br")
+    val allowedHosts = listOf("statusinvest.com.br")        // Website where we will fetch FIIs data
     k.whitelist.addAll(allowedHosts)
 
-    k.start(listOf("https://statusinvest.com.br/fundos-imobiliarios/tgar11"))
+    k.start(listOf("https://statusinvest.com.br/fundos-imobiliarios/tgar11", "https://statusinvest.com.br/fundos-imobiliarios/xplg11",
+        "https://statusinvest.com.br/fundos-imobiliarios/vrta11"))
 
 }
