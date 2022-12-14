@@ -4,7 +4,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.util.Date
 
-@Document(collection = "fiis")
+@Document(collection = "fiis-history")
 data class FiiEntry (
     @Id
     var id: Long,
@@ -18,7 +18,7 @@ data class FiiEntry (
 
     companion object {
         @Transient
-        val SEQUENCE_NAME = "fiis_sequence"
+        val SEQUENCE_NAME = "fiis-history-sequence"
     }
 
 }

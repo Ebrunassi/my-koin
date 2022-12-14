@@ -8,8 +8,8 @@ import org.springframework.data.mongodb.core.MongoOperations
 import org.springframework.stereotype.Repository
 
 @Repository
-class FiiStorageMongo: FiiStorage{
-    private val logger = LoggerFactory.getLogger(FiiStorageMongo::class.java)
+class FiiHistoryStorageMongo: FiiHistoryStorage{
+    private val logger = LoggerFactory.getLogger(FiiHistoryStorageMongo::class.java)
     @Autowired
     private lateinit var mongo: MongoOperations
     @Autowired
@@ -17,7 +17,7 @@ class FiiStorageMongo: FiiStorage{
 
     override fun save(entry: FiiEntry) {
         entry.id = sequenceGenerator.genereteSequence(FiiEntry.SEQUENCE_NAME)
-        logger.info("Saving Fii in database")
+        logger.info("Saving $entry in database")
         mongo.save(entry)
         logger.info("Saved successfully")
     }

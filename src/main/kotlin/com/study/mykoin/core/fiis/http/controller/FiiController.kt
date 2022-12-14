@@ -19,7 +19,6 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.left
 import arrow.core.right
 import com.study.mykoin.core.common.errors.ServiceErrors
 import com.study.mykoin.core.common.response.ServiceResponse
