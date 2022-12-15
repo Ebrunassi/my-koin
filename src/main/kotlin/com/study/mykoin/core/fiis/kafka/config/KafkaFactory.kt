@@ -47,13 +47,13 @@ class KafkaFactory() {
         return producerProperties!!
     }
 
-    fun getConsumerProperties(): Properties {
+    fun getConsumerProperties(consumerGroup: String): Properties {
         if(consumerProperties == null) {
             val prop = Properties()
             prop[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = "$kafkaHost:$kafkaPort"
             prop[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
             prop[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
-            prop[ConsumerConfig.GROUP_ID_CONFIG] = "kotlin_example_group_1"
+            prop[ConsumerConfig.GROUP_ID_CONFIG] = consumerGroup
             prop[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
 
             consumerProperties = prop

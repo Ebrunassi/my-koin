@@ -22,6 +22,10 @@ class FiiConsumer{
     @Autowired
     private lateinit var entryService: EntryService
 
+    companion object {
+        val consumerGroup = "FII_ENTRY_CONSUMER"
+    }
+
     @PostConstruct
     fun init() {
         try {
@@ -38,7 +42,7 @@ class FiiConsumer{
         val topic = FiiController.FIIS_TOPIC
 
         // Load properties from disk.
-        val props = kafkaFactory.getConsumerProperties()
+        val props = kafkaFactory.getConsumerProperties(consumerGroup)
 
         // Add additional properties.
         val consumer = KafkaConsumer<String, String>(props).apply {

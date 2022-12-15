@@ -15,10 +15,11 @@ class KrawlerServiceImpl: KrawlerService{
         println("url : $url - data : $data")
         val fiiName = url.substringAfterLast("/").uppercase()
 
-        val fii = fiiWalletStorage.findByName(fiiName)?.let {
-            it.monthlyIncome = data!!.replace(",", ".").toDouble()
+        fiiWalletStorage.findByName(fiiName)?.let {
+            it.lastIncome = data!!.replace(",", ".").toDouble()
+            it.monthlyIncome = it.lastIncome * it.quantity
             fiiWalletStorage.upsert(it)
-            logger.info("'${it.name}'Updated monthly income value")
+            logger.info("'${it.name}' - updated values after Krawler execution")
         }
     }
 }

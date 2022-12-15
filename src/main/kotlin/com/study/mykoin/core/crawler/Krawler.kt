@@ -31,7 +31,7 @@ class Krawler{
             logger.info("Starting Krawler...")
             Timer().scheduleAtFixedRate(1000, delay.toLong()) {         // Set this value in variables
                 KrawlerExecuter(
-                    KrawlConfig(totalPages = 3, maxDepth = 1),
+                    KrawlConfig(totalPages = 6, maxDepth = 1),
                     krawlerService
                 ).init()
             }
@@ -65,10 +65,13 @@ class Krawler{
         fun startKrawler() = GlobalScope.async {
             println("Krawling...")
             start(
-                listOf(
+                listOf(     // TODO -- Add manually according to the already existing fiis
+                    "https://statusinvest.com.br/fundos-imobiliarios/deva11",
+                    "https://statusinvest.com.br/fundos-imobiliarios/irdm11",
+                    "https://statusinvest.com.br/fundos-imobiliarios/mxrf11",
+                    "https://statusinvest.com.br/fundos-imobiliarios/vrta11",
                     "https://statusinvest.com.br/fundos-imobiliarios/tgar11",
-                    "https://statusinvest.com.br/fundos-imobiliarios/xplg11",
-                    "https://statusinvest.com.br/fundos-imobiliarios/vrta11"
+                    "https://statusinvest.com.br/fundos-imobiliarios/knri11"
                 )
             )
         }
@@ -95,7 +98,9 @@ class Krawler{
                 println("${counter.incrementAndGet()}. Crawling ${url.canonicalForm}")
                 krawlerService.handle(
                     url.path,
-                    doc.parsedDocument.body()?.getElementById("dy-info")?.getElementsByClass("info")?.first()
+                    doc.parsedDocument.body()
+                        ?.getElementById("dy-info")
+                        ?.getElementsByClass("info")?.first()       // Get 'last income' field
                         ?.getElementsByClass("value")?.text()
                 )
             } catch (e: Exception) {

@@ -22,6 +22,7 @@ class Fii (
     var totalInvested: Double,
     val currency: CurrencyEnum?,
     var monthlyIncome: Double,
+    var lastIncome: Double,
     var porcent: Double
 ){
     companion object{

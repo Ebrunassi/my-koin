@@ -38,7 +38,7 @@ class MyKoinApplication(){
     // Maybe it can be used later
     @Bean
     fun initKrawlerConfig(): KrawlConfig {
-        return KrawlConfig(totalPages = 3, maxDepth = 1)
+        return KrawlConfig(totalPages = 6, maxDepth = 1)
     }
     suspend fun startKafkaProducer(coroutineScope: CoroutineScope) { }
     suspend fun startKafkaConsumer(coroutineScope: CoroutineScope) {
