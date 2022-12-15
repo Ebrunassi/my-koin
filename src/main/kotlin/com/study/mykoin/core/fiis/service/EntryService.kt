@@ -26,7 +26,7 @@ class EntryService {
 
 
     fun handler(record: String){
-        logger.info("Received new message: ${record}")
+        logger.info("Received new message: $record")
         try {
             val fiiEntity = record.mapToFiiEntity()
             fiiHistoryStorage.save(fiiEntity)                                   // Save FII in log table

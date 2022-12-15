@@ -2,9 +2,8 @@ package com.study.mykoin.core.fiis.http.controller
 
 import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.study.mykoin.core.fiis.kafka.config.KafkaFactory
-import com.study.mykoin.core.fiis.model.FiiDTO
+import com.study.mykoin.core.fiis.model.FiiEntryDTO
 import kotlinx.coroutines.reactor.awaitSingle
-import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.slf4j.Logger
@@ -22,6 +21,7 @@ import arrow.core.flatMap
 import arrow.core.right
 import com.study.mykoin.core.common.errors.ServiceErrors
 import com.study.mykoin.core.common.response.ServiceResponse
+import com.study.mykoin.core.fiis.kafka.config.sendMessage
 import com.study.mykoin.helper.handleCall
 import java.util.*
 
@@ -55,21 +55,12 @@ class FiiController {
                 }
             }
          .flatMap {
-            val producerRecord: ProducerRecord<String, String> = ProducerRecord(
-                FIIS_TOPIC,
-                it.name,                                // Key
-                jsonMapper().writeValueAsString(it)     // Value
-            )
+             factory.getProducer().sendMessage(
+                 FIIS_TOPIC,
+                 it.name,
+                 jsonMapper().writeValueAsString(it)
+             )
 
-            KafkaProducer<String, String>(factory.getProducerProperties()).use { producer ->        // A new Kafka producer is created and closed after each iteration
-                producer.send(producerRecord) {
-                        record: RecordMetadata, exception: Exception? ->
-                    if(exception == null || exception.stackTrace.isEmpty()){
-                        log.info("Creating a new message. Topic '${record.topic()}, partition: '${record.partition()}' offset '${record.offset()}' ")
-                    }else
-                        log.error("no message received: '${exception}'")
-                }
-            }
              //ServiceErrors.BadRequest("Erro!!!!").left()
              ServiceResponse.EventSubmited("The event was sent successfully!").right()
         }
@@ -81,6 +72,6 @@ class FiiController {
         // return ServerResponse.status(HttpStatus.OK).json().bodyAndAwait()        // Read https://www.baeldung.com/kotlin/spring-boot-kotlin-coroutines
     }
 
-    private suspend fun mapToEntryDTO(request: ServerRequest): Either<ServiceErrors,FiiDTO> =
-        request.bodyToMono(FiiDTO::class.java).awaitSingle().right()
+    private suspend fun mapToEntryDTO(request: ServerRequest): Either<ServiceErrors,FiiEntryDTO> =
+        request.bodyToMono(FiiEntryDTO::class.java).awaitSingle().right()
 }

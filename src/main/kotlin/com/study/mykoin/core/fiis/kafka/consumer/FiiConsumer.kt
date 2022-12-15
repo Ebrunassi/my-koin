@@ -40,15 +40,7 @@ class FiiConsumer{
     @OptIn(DelicateCoroutinesApi::class)
     fun startConsumer() = GlobalScope.async {
         val topic = FiiController.FIIS_TOPIC
-
-        // Load properties from disk.
-        val props = kafkaFactory.getConsumerProperties(consumerGroup)
-
-        // Add additional properties.
-        val consumer = KafkaConsumer<String, String>(props).apply {
-            subscribe(listOf(topic))
-        }
-
+        val consumer = kafkaFactory.getConsumer(consumerGroup, listOf(topic))
         var totalCount = 0L
 
         runBlocking {

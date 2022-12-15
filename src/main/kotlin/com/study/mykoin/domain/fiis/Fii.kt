@@ -1,8 +1,10 @@
 package com.study.mykoin.domain.fiis
 
+import com.study.mykoin.core.crawler.model.LastIncome
 import com.study.mykoin.core.fiis.model.enums.CurrencyEnum
 import com.study.mykoin.core.fiis.model.enums.FiiTypeEnum
 import com.study.mykoin.core.fiis.model.enums.ResourceTypeEnum
+import kotlinx.serialization.Serializable
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
@@ -11,6 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document
  * It holds all the information regarding the Fii that I have in my wallet
  */
 @Document(collection = "fiis")
+@Serializable
 class Fii (
     @Id
     var id: Long?,
@@ -22,7 +25,7 @@ class Fii (
     var totalInvested: Double,
     val currency: CurrencyEnum?,
     var monthlyIncome: Double,
-    var lastIncome: Double,
+    var lastIncome: LastIncome = LastIncome(),
     var porcent: Double
 ){
     companion object{

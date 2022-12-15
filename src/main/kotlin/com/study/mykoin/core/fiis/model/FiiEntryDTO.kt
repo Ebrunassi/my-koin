@@ -1,8 +1,6 @@
 package com.study.mykoin.core.fiis.model
 
-import java.util.Date
-
-data class FiiDTO(
+data class FiiEntryDTO(
     val name: String,
     val quantity: Int,
     val averagePrice: Double,
