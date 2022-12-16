@@ -1,18 +1,15 @@
 package com.study.mykoin.core
 
 import com.study.mykoin.core.crawler.Krawler
-import com.study.mykoin.core.fiis.kafka.consumer.FiiConsumer
+import com.study.mykoin.core.fiis.consumer.FiiEntryConsumer
+import com.study.mykoin.core.fiis.consumer.FiiWalletConsumer
 import io.thelandscape.krawler.crawler.KrawlConfig
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
-import java.util.*
 import java.util.concurrent.Executors
-import kotlin.concurrent.scheduleAtFixedRate
 import kotlin.system.exitProcess
 
 
@@ -42,9 +39,10 @@ class MyKoinApplication(){
     }
     suspend fun startKafkaProducer(coroutineScope: CoroutineScope) { }
     suspend fun startKafkaConsumer(coroutineScope: CoroutineScope) {
-        logger.info("Starting kafka consumer...")
-        FiiConsumer().init()
-        logger.info("The consumer has been started successfully")
+        logger.info("Starting consumers...")
+        FiiEntryConsumer().init().also { logger.info("FiiEntryConsumer has been started successfully") }
+        FiiWalletConsumer().init().also { logger.info("FiiWalletConsumer has been started successfully") }
+        logger.info("All consumers has been started!")
     }
     suspend fun startKrawler(coroutineScope: CoroutineScope) {
         try {

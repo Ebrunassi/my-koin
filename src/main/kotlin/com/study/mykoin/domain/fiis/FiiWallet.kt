@@ -1,6 +1,7 @@
 package com.study.mykoin.domain.fiis
 
 import com.study.mykoin.core.crawler.model.LastIncome
+import com.study.mykoin.core.crawler.model.NextIncome
 import com.study.mykoin.core.fiis.model.enums.CurrencyEnum
 import com.study.mykoin.core.fiis.model.enums.FiiTypeEnum
 import com.study.mykoin.core.fiis.model.enums.ResourceTypeEnum
@@ -12,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document
  * This domain is used in FiiWallet collection.
  * It holds all the information regarding the Fii that I have in my wallet
  */
-@Document(collection = "fiis")
+@Document(collection = "fiis-wallet")
 @Serializable
 class Fii (
     @Id
@@ -26,11 +27,12 @@ class Fii (
     val currency: CurrencyEnum?,
     var monthlyIncome: Double,
     var lastIncome: LastIncome = LastIncome(),
+    var nextIncome: NextIncome = NextIncome(),
     var porcent: Double
 ){
     companion object{
         @Transient
-        val SEQUENCE_NAME = "FIIS-SEQUENCE"
+        val SEQUENCE_NAME = "fiis-wallet-sequence"
     }
 }
 

@@ -1,11 +1,9 @@
 package com.study.mykoin.core.fiis.http.controller
 
 import com.fasterxml.jackson.module.kotlin.jsonMapper
-import com.study.mykoin.core.fiis.kafka.config.KafkaFactory
+import com.study.mykoin.core.kafka.KafkaFactory
 import com.study.mykoin.core.fiis.model.FiiEntryDTO
 import kotlinx.coroutines.reactor.awaitSingle
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.clients.producer.RecordMetadata
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,7 +19,8 @@ import arrow.core.flatMap
 import arrow.core.right
 import com.study.mykoin.core.common.errors.ServiceErrors
 import com.study.mykoin.core.common.response.ServiceResponse
-import com.study.mykoin.core.fiis.kafka.config.sendMessage
+import com.study.mykoin.core.kafka.TopicEnum
+import com.study.mykoin.core.kafka.sendMessage
 import com.study.mykoin.helper.handleCall
 import java.util.*
 
@@ -32,10 +31,6 @@ class FiiController {
 
     @Autowired
     private lateinit var factory: KafkaFactory
-
-    companion object {
-        const val FIIS_TOPIC = "fiis_topic"
-    }
 
     private class Response(val description: String)
 
@@ -56,7 +51,7 @@ class FiiController {
             }
          .flatMap {
              factory.getProducer().sendMessage(
-                 FIIS_TOPIC,
+                 TopicEnum.FIIS_HISTORY_TOPIC.topicName,
                  it.name,
                  jsonMapper().writeValueAsString(it)
              )

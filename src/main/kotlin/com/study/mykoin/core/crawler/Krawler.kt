@@ -1,9 +1,7 @@
 package com.study.mykoin.core.crawler
 
-import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.study.mykoin.core.crawler.service.KrawlerService
-import com.study.mykoin.core.fiis.http.controller.FiiController
-import com.study.mykoin.core.fiis.kafka.config.KafkaFactory
+import com.study.mykoin.core.kafka.KafkaFactory
 import io.thelandscape.krawler.crawler.KrawlConfig
 import io.thelandscape.krawler.crawler.Krawler
 import io.thelandscape.krawler.http.KrawlDocument
@@ -11,8 +9,6 @@ import io.thelandscape.krawler.http.KrawlUrl
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.*
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.clients.producer.RecordMetadata
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -39,7 +35,7 @@ class Krawler{
     }
 
     @PostConstruct
-    fun init() {
+    fun     init() {
         try {
             logger.info("Starting Krawler...")
             Timer().scheduleAtFixedRate(5000, delay.toLong()) {         // Set this value in variables

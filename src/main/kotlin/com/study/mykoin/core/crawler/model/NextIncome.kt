@@ -1,5 +1,8 @@
 package com.study.mykoin.core.crawler.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 class NextIncome(
     var value: Double? = null,
     var yield: Double? = null,

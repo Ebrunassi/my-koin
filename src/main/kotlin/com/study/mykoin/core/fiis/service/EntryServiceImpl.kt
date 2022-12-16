@@ -8,15 +8,14 @@ import com.study.mykoin.domain.fiis.FiiEntry
 import com.study.mykoin.domain.fiis.updateFii
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import com.study.mykoin.core.common.errors.ServiceErrors
+import com.study.mykoin.core.fiis.helpers.mapToFii
+import com.study.mykoin.core.fiis.helpers.mapToFiiEntity
 
 import org.springframework.stereotype.Service
 
 @Service
-class EntryService {
+class EntryService: ConsumerHandler {
     private val logger = LoggerFactory.getLogger("EntryService")
 
     @Autowired
@@ -25,7 +24,7 @@ class EntryService {
     private lateinit var fiiWalletStorage: FiiWalletStorage
 
 
-    fun handler(record: String){
+    override fun handler(key: String, record: String){
         logger.info("Received new message: $record")
         try {
             val fiiEntity = record.mapToFiiEntity()
@@ -49,10 +48,3 @@ class EntryService {
     }
 }
 
-fun String.mapToFiiEntity(): FiiEntry {
-    return Gson().fromJson(this, FiiEntry::class.java)
-}
-
-fun String.mapToFii(): Fii {
-    return Gson().fromJson(this, Fii::class.java)
-}

@@ -1,16 +1,12 @@
 package com.study.mykoin.core.crawler.service
 
 import com.fasterxml.jackson.module.kotlin.jsonMapper
-import com.study.mykoin.core.crawler.Krawler
 import com.study.mykoin.core.crawler.model.FiiExtractedInformation
-import com.study.mykoin.core.crawler.model.LastIncome
-import com.study.mykoin.core.fiis.kafka.config.KafkaFactory
-import com.study.mykoin.core.fiis.kafka.config.sendMessage
-import com.study.mykoin.core.fiis.storage.FiiWalletStorage
+import com.study.mykoin.core.kafka.KafkaFactory
+import com.study.mykoin.core.kafka.sendMessage
+import com.study.mykoin.core.kafka.TopicEnum
 import io.thelandscape.krawler.http.KrawlDocument
 import kotlinx.coroutines.*
-import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.clients.producer.RecordMetadata
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -20,10 +16,8 @@ class KrawlerServiceImpl: KrawlerService{
 
     @Autowired
     private lateinit var kafkaFactory: KafkaFactory
-    @Autowired
-    private lateinit var fiiWalletStorage: FiiWalletStorage
-    private val logger = LoggerFactory.getLogger("KrawlerService")
 
+    private val logger = LoggerFactory.getLogger("KrawlerService")
     fun String?.convertToDouble(): Double? {
         return if(this.equals("-")) 0.0
         else this?.replace(",",".")?.toDouble()
@@ -97,18 +91,8 @@ class KrawlerServiceImpl: KrawlerService{
         val fiiName = url.substringAfterLast("/").uppercase()
         val extractedInformation = extractInformation(fiiName, data)
 
-        fiiWalletStorage.findByName(fiiName)?.let {
-            if (extractedInformation?.lastIncome?.value != null) {
-                it.lastIncome = extractedInformation.lastIncome
-                it.monthlyIncome =  extractedInformation.lastIncome.value!! * it.quantity
-            }
-
-            fiiWalletStorage.upsert(it)
-            logger.info("'${it.name}' - updated values after Krawler execution")
-        }
-
         kafkaFactory.getProducer().sendMessage(
-            Krawler.FIIS_WALLET_TOPIC,
+            TopicEnum.FIIS_WALLET_TOPIC.topicName,
             fiiName,
             jsonMapper().writeValueAsString(extractedInformation)
         ).also {

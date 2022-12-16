@@ -43,6 +43,7 @@ class FiiWalletStorageMongo: FiiWalletStorage {
             .set("averagePrice", fii.averagePrice)
             .set("monthlyIncome", fii.monthlyIncome)        // TODO - Probably we will need to set new values for other attributes too
             .set("lastIncome", fii.lastIncome)
+            .set("nextIncome", fii.nextIncome)
         return mongo.updateFirst(query, update, Fii::class.java).modifiedCount
     }
 }
