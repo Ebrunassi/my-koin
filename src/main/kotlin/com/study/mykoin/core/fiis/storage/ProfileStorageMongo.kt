@@ -1,6 +1,7 @@
 package com.study.mykoin.core.fiis.storage
 
 import com.study.mykoin.core.common.storage.SequenceGenerator
+import com.study.mykoin.domain.fiis.Fii
 import com.study.mykoin.domain.fiis.Profile
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,7 +20,9 @@ class ProfileStorageMongo: ProfileStorage {
     private lateinit var sequenceGenerator: SequenceGenerator
 
     override fun save(profile: Profile): Profile {
-        TODO("Not yet implemented")
+        profile.id = sequenceGenerator.genereteSequence(Profile.SEQUENCE_NAME)
+        logger.info("Saving $profile in database")
+        return mongo.save(profile).also { logger.info("Saved successfully") }
     }
 
     override fun findById(id: Long): Profile? {

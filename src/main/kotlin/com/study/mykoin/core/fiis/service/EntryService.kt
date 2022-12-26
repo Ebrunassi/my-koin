@@ -1,11 +1,7 @@
 package com.study.mykoin.core.fiis.service
 
-import arrow.core.continuations.nullable
-import com.google.gson.Gson
 import com.study.mykoin.core.fiis.storage.FiiHistoryStorage
 import com.study.mykoin.core.fiis.storage.FiiWalletStorage
-import com.study.mykoin.domain.fiis.Fii
-import com.study.mykoin.domain.fiis.FiiEntry
 import com.study.mykoin.domain.fiis.updateFii
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
