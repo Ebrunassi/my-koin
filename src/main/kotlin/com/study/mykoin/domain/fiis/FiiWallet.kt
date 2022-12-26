@@ -25,14 +25,14 @@ class Fii (
     var averagePrice: Double,
     var totalInvested: Double,
     val currency: CurrencyEnum?,
-    var monthlyIncome: Double,
+    var monthlyIncome: Double,      // Regarding only to this fii
     var lastIncome: LastIncome = LastIncome(),
     var nextIncome: NextIncome = NextIncome(),
     var porcent: Double
 ){
     companion object{
         @Transient
-        val SEQUENCE_NAME = "fiis-wallet-sequence"
+        const val SEQUENCE_NAME = "fiis-wallet-sequence"
     }
 }
 

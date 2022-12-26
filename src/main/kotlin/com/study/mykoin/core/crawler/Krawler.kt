@@ -35,7 +35,7 @@ class Krawler{
     }
 
     @PostConstruct
-    fun     init() {
+    fun init() {
         try {
             logger.info("Starting Krawler...")
             Timer().scheduleAtFixedRate(5000, delay.toLong()) {         // Set this value in variables
@@ -89,7 +89,6 @@ class Krawler{
 
         @OptIn(DelicateCoroutinesApi::class)
         fun startKrawler() = GlobalScope.async {
-            println("Krawling...")
             start(
                 listOf(     // TODO -- Add manually according to the already existing fiis
                     "https://statusinvest.com.br/fundos-imobiliarios/deva11",

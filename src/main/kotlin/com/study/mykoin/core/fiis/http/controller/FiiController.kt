@@ -27,7 +27,7 @@ import java.util.*
 @Component
 class FiiController {
 
-    private val log : Logger = LoggerFactory.getLogger("FiiController")
+    private val logger : Logger = LoggerFactory.getLogger(FiiController::class.java)
 
     @Autowired
     private lateinit var factory: KafkaFactory
@@ -53,7 +53,8 @@ class FiiController {
              factory.getProducer().sendMessage(
                  TopicEnum.FIIS_HISTORY_TOPIC.topicName,
                  it.name,
-                 jsonMapper().writeValueAsString(it)
+                 jsonMapper().writeValueAsString(it),
+                 logger
              )
 
              //ServiceErrors.BadRequest("Erro!!!!").left()

@@ -1,16 +1,13 @@
 package com.study.mykoin.core.fiis.storage
 
-import arrow.core.right
 import com.study.mykoin.core.common.storage.SequenceGenerator
 import com.study.mykoin.domain.fiis.Fii
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.MongoOperations
-import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
-import org.springframework.data.mongodb.core.update
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -44,6 +41,8 @@ class FiiWalletStorageMongo: FiiWalletStorage {
             .set("monthlyIncome", fii.monthlyIncome)        // TODO - Probably we will need to set new values for other attributes too
             .set("lastIncome", fii.lastIncome)
             .set("nextIncome", fii.nextIncome)
-        return mongo.updateFirst(query, update, Fii::class.java).modifiedCount
+        mongo.updateFirst(query, update, Fii::class.java).let {
+            return mongo.find(query, Fii::class.java).first().id!!
+        }
     }
 }

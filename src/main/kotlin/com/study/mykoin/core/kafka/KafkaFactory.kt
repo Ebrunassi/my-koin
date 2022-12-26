@@ -12,6 +12,7 @@ import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TopicExistsException
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
+import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -117,19 +118,21 @@ class KafkaFactory() {
     }
 }
 
-fun <K,V> KafkaProducer<K,V>.sendMessage (topicName: String, key: K, value: V){
+fun <K,V> KafkaProducer<K,V>.sendMessage (topicName: String, key: K, value: V, logger: Logger){
     val producerRecord: ProducerRecord<K, V> = ProducerRecord(topicName, key, value)
     this.use { producer ->
         producer.send(producerRecord) {
                 record: RecordMetadata, exception: Exception? ->
             if(exception != null && exception.stackTrace.isNotEmpty()) {
                 throw Exception("Error in trying to send a message")
+            } else {
+                logger.info("Sent new message to '$topicName' topic with key '$key': '$value'")
             }
         }
     }
 }
 
-fun <K,V : Any> KafkaConsumer<K,V>.startConsuming(handlerService: ConsumerHandler) {
+fun <K,V : Any> KafkaConsumer<K,V>.startConsuming(handlerService: ConsumerHandler, logger: Logger) {
         var totalCount = 0L
         this.use {
             while (true) {
@@ -137,7 +140,7 @@ fun <K,V : Any> KafkaConsumer<K,V>.startConsuming(handlerService: ConsumerHandle
                     .poll(Duration.ofSeconds(2))
                     .fold(totalCount) { accumulator, record ->
                         val newCount = accumulator + 1
-                        println("Consumed record with key ${record.key()} and value ${record.value()}, and updated total count to $newCount")
+                        logger.info("Consumed record with key ${record.key()} and value ${record.value()}, and updated total count to $newCount")
                         handlerService.handler(record.key().toString(), record.value().toString())
                         newCount
                     }

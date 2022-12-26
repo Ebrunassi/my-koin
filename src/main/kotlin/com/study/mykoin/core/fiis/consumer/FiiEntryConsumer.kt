@@ -18,7 +18,7 @@ import java.util.*
  */
 @Configuration
 class FiiEntryConsumer{
-    private val logger = LoggerFactory.getLogger("FiiConsumer")
+    private val logger = LoggerFactory.getLogger(FiiEntryConsumer::class.java)
     private lateinit var consumerJob: Deferred<Unit>
 
     @Autowired
@@ -48,7 +48,7 @@ class FiiEntryConsumer{
          */
         //runBlocking {     // Is that necessary?
             //coroutineScope {      // We don't have any suspend methods inside of it
-                consumer.startConsuming(entryService)
+                consumer.startConsuming(entryService, logger)
             //}
         //}
     }

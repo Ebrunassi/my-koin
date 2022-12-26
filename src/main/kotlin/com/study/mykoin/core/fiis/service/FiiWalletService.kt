@@ -18,19 +18,18 @@ class FiiWalletService: ConsumerHandler {
      */
     override fun handler(key: String, record: String) {
         val fii = record.mapToFii()
-        logger.info("Received new value -> $record")
 
         fiiWalletStorage.findByName(key)?.let {
             if (fii.lastIncome.value != null) {
-                it.lastIncome = fii.lastIncome
-                it.monthlyIncome =  fii.lastIncome.value!! * it.quantity
+                it.lastIncome = fii.lastIncome                                  // 'lastIncome' updated
+                it.monthlyIncome =  fii.lastIncome.value!! * it.quantity        // 'monthlyIncome' updated
             }
 
             if(fii.nextIncome.value != null) {
-                it.nextIncome = fii.nextIncome
+                it.nextIncome = fii.nextIncome                                  // 'nextIncome' updated
             }
 
-            fiiWalletStorage.upsert(it)
+            fiiWalletStorage.upsert(it)                                         // Upserting
             logger.info("'${it.name}' - updated values after Krawler execution")
         }
     }

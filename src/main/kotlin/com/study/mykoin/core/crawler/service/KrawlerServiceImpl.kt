@@ -17,7 +17,7 @@ class KrawlerServiceImpl: KrawlerService{
     @Autowired
     private lateinit var kafkaFactory: KafkaFactory
 
-    private val logger = LoggerFactory.getLogger("KrawlerService")
+    private val logger = LoggerFactory.getLogger(KrawlerServiceImpl::class.java)
     fun String?.convertToDouble(): Double? {
         return if(this.equals("-")) 0.0
         else this?.replace(",",".")?.toDouble()
@@ -94,7 +94,8 @@ class KrawlerServiceImpl: KrawlerService{
         kafkaFactory.getProducer().sendMessage(
             TopicEnum.FIIS_WALLET_TOPIC.topicName,
             fiiName,
-            jsonMapper().writeValueAsString(extractedInformation)
+            jsonMapper().writeValueAsString(extractedInformation),
+            logger
         ).also {
             logger.info("Message sent successfully!")
         }
