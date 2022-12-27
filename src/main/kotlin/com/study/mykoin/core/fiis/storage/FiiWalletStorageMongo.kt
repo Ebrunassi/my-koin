@@ -27,6 +27,11 @@ class FiiWalletStorageMongo: FiiWalletStorage {
         return mongo.findById(id, Fii::class.java)
     }
 
+    override fun findByUserId(userId: Long): List<Fii>? {
+        val query = Query(Criteria.where("userId").`is`(userId))
+        return mongo.find(query, Fii::class.java)
+    }
+
     override fun findByName(name: String): Fii? {
         val query = Query(Criteria.where("name").`is`(name))
         return mongo.find(query, Fii::class.java).firstOrNull()

@@ -2,6 +2,7 @@ package com.study.mykoin.core.fiis.model
 
 data class FiiEntryDTO(
     val name: String,
+    val userId: Long,
     val quantity: Int,
     val averagePrice: Double,
     var transactionDate: String?,       // TODO - Create an object to hold this value and also implement logic on it

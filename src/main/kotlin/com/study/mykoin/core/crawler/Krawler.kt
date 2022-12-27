@@ -1,7 +1,9 @@
 package com.study.mykoin.core.crawler
 
 import com.study.mykoin.core.crawler.service.KrawlerService
+import com.study.mykoin.core.fiis.storage.FiiWalletStorage
 import com.study.mykoin.core.kafka.KafkaFactory
+import com.study.mykoin.domain.fiis.Fii
 import io.thelandscape.krawler.crawler.KrawlConfig
 import io.thelandscape.krawler.crawler.Krawler
 import io.thelandscape.krawler.http.KrawlDocument
@@ -24,12 +26,18 @@ class Krawler{
 
     @Autowired
     private lateinit var krawlerService: KrawlerService
-
     @Autowired
     private lateinit var kafkaFactory: KafkaFactory
+    @Autowired
+    private lateinit var walletStorage: FiiWalletStorage
     private val logger = LoggerFactory.getLogger("Krawler")
     @Value("\${krawler.delay}")
     private lateinit var delay: String
+    @Value("\${krawler.host.visit.template}")
+    private lateinit var visitHostTemplate: String
+
+    private val walletSet = mutableSetOf<Fii>()
+
     companion object {
         const val FIIS_WALLET_TOPIC = "fiis_wallet"
     }
@@ -37,6 +45,7 @@ class Krawler{
     @PostConstruct
     fun init() {
         try {
+            walletStorage.findByUserId(1.toLong())?.let { walletSet.addAll(it) }          // TODO - When adding login system, get the user id of the logged user
             logger.info("Starting Krawler...")
             Timer().scheduleAtFixedRate(5000, delay.toLong()) {         // Set this value in variables
                 KrawlerExecuter(
@@ -50,7 +59,7 @@ class Krawler{
         }
     }
 
-    class KrawlerExecuter(
+    inner class KrawlerExecuter(
         config: KrawlConfig = KrawlConfig(totalPages = 3, maxDepth = 1),
         val krawlerService: KrawlerService,
         val kafkaProducer: KafkaProducer<String, String>
@@ -89,15 +98,13 @@ class Krawler{
 
         @OptIn(DelicateCoroutinesApi::class)
         fun startKrawler() = GlobalScope.async {
+
+            var walletList = walletSet.map {
+                visitHostTemplate + it.name
+            }
+
             start(
-                listOf(     // TODO -- Add manually according to the already existing fiis
-                    "https://statusinvest.com.br/fundos-imobiliarios/deva11",
-                    "https://statusinvest.com.br/fundos-imobiliarios/irdm11",
-                    "https://statusinvest.com.br/fundos-imobiliarios/mxrf11",
-                    "https://statusinvest.com.br/fundos-imobiliarios/vrta11",
-                    "https://statusinvest.com.br/fundos-imobiliarios/tgar11",
-                    "https://statusinvest.com.br/fundos-imobiliarios/knri11"
-                )
+                walletList
             )
         }
 

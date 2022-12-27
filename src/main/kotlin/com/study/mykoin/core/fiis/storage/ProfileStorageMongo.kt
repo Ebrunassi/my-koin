@@ -22,7 +22,7 @@ class ProfileStorageMongo: ProfileStorage {
     override fun save(profile: Profile): Profile {
         profile.id = sequenceGenerator.genereteSequence(Profile.SEQUENCE_NAME)
         logger.info("Saving $profile in database")
-        return mongo.save(profile).also { logger.info("Saved successfully") }
+        return mongo.save(profile).also { logger.info("Profile '${profile.username}' saved successfully") }
     }
 
     override fun findById(id: Long): Profile? {
@@ -34,8 +34,8 @@ class ProfileStorageMongo: ProfileStorage {
         return mongo.find(query, Profile::class.java).firstOrNull()
     }
 
-    override fun upsert(username: String, fiiWalletId: Long): Long {
-        val query = Query(Criteria.where("username").`is`(username))
+    override fun upsert(userId: Long, fiiWalletId: Long): Long {
+        val query = Query(Criteria.where("id").`is`(userId))
         val update = Update()
             .addToSet("fiiWallet", fiiWalletId)
         return mongo.updateFirst(query, update, Profile::class.java).modifiedCount

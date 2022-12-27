@@ -30,7 +30,7 @@ class FiiWalletService: ConsumerHandler {
             }
 
             fiiWalletStorage.upsert(it)                                         // Upserting
-            logger.info("'${it.name}' - updated values after Krawler execution")
+            logger.info("[WALLET-STORAGE] '${it.name}' - updated values after Krawler execution")
         }
     }
 

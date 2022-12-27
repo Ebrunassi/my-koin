@@ -8,6 +8,7 @@ import java.util.Date
 data class FiiEntry (
     @Id
     var id: Long,
+    var userId: Long,                   // User which this entry was created by
     val name: String,
     val quantity: Int,
     val averagePrice: Double,

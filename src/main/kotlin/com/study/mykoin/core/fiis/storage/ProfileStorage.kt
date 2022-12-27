@@ -9,5 +9,5 @@ interface ProfileStorage {
 
     fun findByName(username: String): Profile?
 
-    fun upsert(username: String, fiiWalletId: Long): Long
+    fun upsert(userId: Long, fiiWalletId: Long): Long
 }

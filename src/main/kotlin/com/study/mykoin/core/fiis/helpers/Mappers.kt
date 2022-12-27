@@ -7,6 +7,5 @@ import com.study.mykoin.domain.fiis.Profile
 
 
 fun String.mapToFii(): Fii = Gson().fromJson(this, Fii::class.java)
-fun String.mapToFiiEntity(): FiiEntry = Gson().fromJson(this, FiiEntry::class.java)
-
+fun String.mapToFiiEntry(): FiiEntry = Gson().fromJson(this, FiiEntry::class.java)
 fun String.mapToProfileEntity(): Profile = Gson().fromJson(this, Profile::class.java)

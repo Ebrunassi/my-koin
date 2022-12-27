@@ -32,7 +32,7 @@ class ProfileService: ConsumerHandler {
         try {
             logger.info("Received new message in profile service: $record")
             val profileEntity = record.mapToProfileEntity()
-            profileStorage.save(profileEntity).also { logger.info("Updated database") }.right()
+            profileStorage.save(profileEntity).also { logger.info("[PROFILE-STORAGE] Updated database") }.right()
         } catch (e: Exception) {
             ServiceErrors.HandlerError("${e.message} - ${e.localizedMessage}").left()
         }

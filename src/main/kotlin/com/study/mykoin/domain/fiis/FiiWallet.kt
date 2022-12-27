@@ -20,6 +20,7 @@ class Fii (
     var id: Long?,
     val name: String,
     var quantity: Int,
+    val userId: Long,
     val type: FiiTypeEnum,
     val resourceType: ResourceTypeEnum?,
     var averagePrice: Double,

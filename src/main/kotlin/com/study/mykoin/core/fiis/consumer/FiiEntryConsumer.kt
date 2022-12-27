@@ -2,7 +2,7 @@ package com.study.mykoin.core.fiis.consumer
 
 import com.study.mykoin.core.kafka.KafkaFactory
 import com.study.mykoin.core.kafka.startConsuming
-import com.study.mykoin.core.fiis.service.EntryService
+import com.study.mykoin.core.fiis.service.FiiEntryService
 import com.study.mykoin.core.kafka.ConsumerGroupEnum
 import com.study.mykoin.core.kafka.TopicEnum
 import jakarta.annotation.PostConstruct
@@ -24,7 +24,7 @@ class FiiEntryConsumer{
     @Autowired
     private lateinit var kafkaFactory: KafkaFactory
     @Autowired
-    private lateinit var entryService: EntryService
+    private lateinit var fiiEntryService: FiiEntryService
 
     @PostConstruct
     fun init() {
@@ -48,7 +48,7 @@ class FiiEntryConsumer{
          */
         //runBlocking {     // Is that necessary?
             //coroutineScope {      // We don't have any suspend methods inside of it
-                consumer.startConsuming(entryService, logger)
+                consumer.startConsuming(fiiEntryService, logger)
             //}
         //}
     }
