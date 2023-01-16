@@ -8,11 +8,19 @@ import java.util.*
  * Please add any other error you see that could happen
  */
 sealed interface ServiceErrors {
-    data class BadRequest(val reason: String): ServiceErrors {
+    data class BadRequest(val reason: String) : ServiceErrors {
         val status: HttpStatus = HttpStatus.BAD_REQUEST
     }
 
-    data class HandlerError(val reason: String): ServiceErrors {
+    data class HandlerError(val reason: String) : ServiceErrors {
+        val uuid = UUID.randomUUID().toString()
+    }
+
+    data class InternalError(val reason: String) : ServiceErrors {
+        val uuid = UUID.randomUUID().toString()
+    }
+
+    data class ProfileNotFound(val reason: String) : ServiceErrors {
         val uuid = UUID.randomUUID().toString()
     }
 }

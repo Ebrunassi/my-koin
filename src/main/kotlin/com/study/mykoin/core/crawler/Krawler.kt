@@ -9,20 +9,24 @@ import io.thelandscape.krawler.crawler.Krawler
 import io.thelandscape.krawler.http.KrawlDocument
 import io.thelandscape.krawler.http.KrawlUrl
 import jakarta.annotation.PostConstruct
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import java.time.LocalTime
-import java.util.*
+import java.util.Timer
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.scheduleAtFixedRate
 
 @Configuration
-class Krawler{
+class Krawler {
 
     @Autowired
     private lateinit var krawlerService: KrawlerService
@@ -45,11 +49,11 @@ class Krawler{
     @PostConstruct
     fun init() {
         try {
-            walletStorage.findByUserId(1.toLong())?.let { walletSet.addAll(it) }          // TODO - When adding login system, get the user id of the logged user
+            walletStorage.findByUserId(1.toLong())?.let { walletSet.addAll(it) } // TODO - When adding login system, get the user id of the logged user
             logger.info("Starting Krawler...")
-            Timer().scheduleAtFixedRate(5000, delay.toLong()) {         // Set this value in variables
+            Timer().scheduleAtFixedRate(5000, delay.toLong()) { // Set this value in variables
                 KrawlerExecuter(
-                    KrawlConfig(totalPages = 6, maxDepth = 1),
+                    KrawlConfig(totalPages = 20, maxDepth = 1),
                     krawlerService,
                     kafkaFactory.getProducer()
                 ).init()
@@ -67,8 +71,10 @@ class Krawler{
 
         private val logger = LoggerFactory.getLogger("KrawlerExecuter")
         private lateinit var consumerJob: Deferred<Unit>
-        private val FILTERS: Regex = Regex(".*(\\.(css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|" +
-                    "mov|mpeg|ram|m4v|pdf|rm|smil|wmv|swf|wma|zip|rar|gz|tar|ico))$", RegexOption.IGNORE_CASE
+        private val FILTERS: Regex = Regex(
+            ".*(\\.(css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|" +
+                "mov|mpeg|ram|m4v|pdf|rm|smil|wmv|swf|wma|zip|rar|gz|tar|ico))$",
+            RegexOption.IGNORE_CASE
         )
         private var startTimestamp: Long = 0
         private var endTimestamp: Long = 0
@@ -76,7 +82,7 @@ class Krawler{
         fun init() {
             try {
                 // Add a few different hosts to the whitelist
-                val allowedHosts = listOf("statusinvest.com.br")        // Website where we will fetch FIIs data
+                val allowedHosts = listOf("statusinvest.com.br") // Website where we will fetch FIIs data
                 this.whitelist.addAll(allowedHosts)
                 consumerJob = startKrawler()
             } catch (e: Exception) {
@@ -98,14 +104,9 @@ class Krawler{
 
         @OptIn(DelicateCoroutinesApi::class)
         fun startKrawler() = GlobalScope.async {
-
-            var walletList = walletSet.map {
+            walletSet.map {
                 visitHostTemplate + it.name
-            }
-
-            start(
-                walletList
-            )
+            }.let { start(it) }
         }
 
         /**

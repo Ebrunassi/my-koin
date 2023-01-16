@@ -8,5 +8,5 @@ class LastIncome(
     var yield: Double? = null,
     var baseValue: Double? = null,
     var baseDay: String? = null,
-    var payDay: String? = null) {
-}
+    var payDay: String? = null
+)

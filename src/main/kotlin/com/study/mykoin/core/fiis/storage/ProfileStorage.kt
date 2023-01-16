@@ -1,13 +1,12 @@
 package com.study.mykoin.core.fiis.storage
 
-import com.study.mykoin.domain.fiis.Fii
+import arrow.core.Either
+import com.study.mykoin.core.common.errors.ServiceErrors
 import com.study.mykoin.domain.fiis.Profile
 
 interface ProfileStorage {
-    fun save(profile: Profile): Profile
-    fun findById(id: Long): Profile?
-
+    fun save(profile: Profile): Either<Exception, Profile>
+    fun findById(id: Long): Either<ServiceErrors, Profile>
     fun findByName(username: String): Profile?
-
-    fun upsert(userId: Long, fiiWalletId: Long): Long
+    fun upsert(userId: Long, fiiWalletId: Long): Either<ServiceErrors, Long>
 }

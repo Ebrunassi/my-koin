@@ -1,6 +1,6 @@
 package com.study.mykoin.helper
 
-class Functions {}
+class Functions
 
 /**
  * Runs this function if the receiver is null

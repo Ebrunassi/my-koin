@@ -57,6 +57,7 @@ services:
       kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic fiis_history_topic --replication-factor 1 --partitions 3
       kafka-topcis --bootstrap-server kafka:9092 --create --if-not-exists --topic fiis_wallet_topic --replication-factor 1 --partition 3
       kafka-topcis --bootstrap-server kafka:9092 --create --if-not-exists --topic profile_topic --replication-factor 1 --partition 3
+      kafka-topcis --bootstrap-server kafka:9092 --create --if-not-exists --topic domain_events_topic --replication-factor 1 --partition 3
 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:9092 --list

@@ -3,8 +3,8 @@ package com.study.mykoin.core.crawler.service
 import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.study.mykoin.core.crawler.model.FiiExtractedInformation
 import com.study.mykoin.core.kafka.KafkaFactory
-import com.study.mykoin.core.kafka.sendMessage
 import com.study.mykoin.core.kafka.TopicEnum
+import com.study.mykoin.core.kafka.sendMessage
 import io.thelandscape.krawler.http.KrawlDocument
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
@@ -12,15 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class KrawlerServiceImpl: KrawlerService{
+class KrawlerServiceImpl : KrawlerService {
 
     @Autowired
     private lateinit var kafkaFactory: KafkaFactory
 
     private val logger = LoggerFactory.getLogger(KrawlerServiceImpl::class.java)
     fun String?.convertToDouble(): Double? {
-        return if(this.equals("-")) 0.0
-        else this?.replace(",",".")?.toDouble()
+        return if (this.equals("-") || this.isNullOrEmpty()) 0.0
+        else this.replace(",", ".").toDouble()
     }
 
     /**
@@ -28,52 +28,52 @@ class KrawlerServiceImpl: KrawlerService{
      * TODO - For now we are just fetching lastIncome and nextIncome fields,
      * probably we will need to return more data in the future (eg.: P/VP, etc...)
      */
-     fun extractInformation(name: String, data: KrawlDocument?): FiiExtractedInformation? = runBlocking {
+    fun extractInformation(name: String, data: KrawlDocument?): FiiExtractedInformation? = runBlocking {
         val extractedInformation = FiiExtractedInformation(name)
 
-        data?.parsedDocument?.body()?.let {                 // The whole page body
+        data?.parsedDocument?.body()?.let { // The whole page body
             val lastIncome = launch {
                 it.getElementById("dy-info")
-                    ?.getElementsByClass("info")?.first()?.let {     // Block containing last income information
+                    ?.getElementsByClass("info")?.first()?.let { // Block containing last income information
                         extractedInformation.lastIncome.value =
-                            it.getElementsByClass("value")?.text()  // Get 'last income' value field
-                            ?.convertToDouble()
-
-                            it.getElementsByClass("sub-info")?.let { lastIncomeInfo ->
-                                extractedInformation.lastIncome.yield = lastIncomeInfo[0]    // get 'yield' value field
-                                    ?.getElementsByClass("sub-value")?.text()?.convertToDouble()
-
-                                extractedInformation.lastIncome.baseValue = lastIncomeInfo[1]    // get 'yield' value field
-                                    ?.getElementsByClass("sub-value")?.text()?.convertToDouble()
-
-                                extractedInformation.lastIncome.baseDay = lastIncomeInfo[2]    // get 'yield' value field
-                                    ?.getElementsByClass("sub-value")?.text()
-
-                                extractedInformation.lastIncome.payDay = lastIncomeInfo[3]    // get 'payment day' value field
-                                    ?.getElementsByClass("sub-value")?.text()
-                            }
-                    }
-            }
-            val nextIncome = launch {
-                it.getElementsByClass("bg-secondary").first()?.let {     // Block containing next income information
-                        extractedInformation.nextIncome.value =
-                            it.getElementsByClass("value")?.text()  // Get 'last income' value field
+                            it.getElementsByClass("value")?.text() // Get 'last income' value field
                                 ?.convertToDouble()
 
                         it.getElementsByClass("sub-info")?.let { lastIncomeInfo ->
-                            extractedInformation.nextIncome.yield = lastIncomeInfo[0]    // get 'yield' value field
+                            extractedInformation.lastIncome.yield = lastIncomeInfo[0] // get 'yield' value field
                                 ?.getElementsByClass("sub-value")?.text()?.convertToDouble()
 
-                            extractedInformation.nextIncome.baseValue = lastIncomeInfo[1]    // get 'yield' value field
+                            extractedInformation.lastIncome.baseValue = lastIncomeInfo[1] // get 'yield' value field
                                 ?.getElementsByClass("sub-value")?.text()?.convertToDouble()
 
-                            extractedInformation.nextIncome.baseDay = lastIncomeInfo[2]    // get 'yield' value field
+                            extractedInformation.lastIncome.baseDay = lastIncomeInfo[2] // get 'yield' value field
                                 ?.getElementsByClass("sub-value")?.text()
 
-                            extractedInformation.nextIncome.payDay = lastIncomeInfo[3]    // get 'payment day' value field
+                            extractedInformation.lastIncome.payDay = lastIncomeInfo[3] // get 'payment day' value field
                                 ?.getElementsByClass("sub-value")?.text()
                         }
                     }
+            }
+            val nextIncome = launch {
+                it.getElementsByClass("bg-secondary").first()?.let { // Block containing next income information
+                    extractedInformation.nextIncome.value =
+                        it.getElementsByClass("value")?.text() // Get 'last income' value field
+                            ?.convertToDouble()
+
+                    it.getElementsByClass("sub-info")?.let { lastIncomeInfo ->
+                        extractedInformation.nextIncome.yield = lastIncomeInfo[0] // get 'yield' value field
+                            ?.getElementsByClass("sub-value")?.text()?.convertToDouble()
+
+                        extractedInformation.nextIncome.baseValue = lastIncomeInfo[1] // get 'yield' value field
+                            ?.getElementsByClass("sub-value")?.text()?.convertToDouble()
+
+                        extractedInformation.nextIncome.baseDay = lastIncomeInfo[2] // get 'yield' value field
+                            ?.getElementsByClass("sub-value")?.text()
+
+                        extractedInformation.nextIncome.payDay = lastIncomeInfo[3] // get 'payment day' value field
+                            ?.getElementsByClass("sub-value")?.text()
+                    }
+                }
             }
             lastIncome.join()
             nextIncome.join()
@@ -102,7 +102,7 @@ class KrawlerServiceImpl: KrawlerService{
     }
 }
 
-fun <R,T> logAndRun(logMessage: String,  fn: (R) -> T): (R) -> T {
+fun <R, T> logAndRun(logMessage: String, fn: (R) -> T): (R) -> T {
     print(logMessage)
     return fn
 }

@@ -1,20 +1,20 @@
 package com.study.mykoin.core.fiis.service
 
-import com.study.mykoin.core.fiis.storage.FiiHistoryStorage
-import com.study.mykoin.core.fiis.storage.FiiWalletStorage
-import com.study.mykoin.domain.fiis.updateFii
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import com.study.mykoin.core.common.errors.ServiceErrors
+import arrow.core.flatMap
 import com.study.mykoin.core.fiis.helpers.mapToFii
 import com.study.mykoin.core.fiis.helpers.mapToFiiEntry
+import com.study.mykoin.core.fiis.storage.FiiHistoryStorage
+import com.study.mykoin.core.fiis.storage.FiiWalletStorage
 import com.study.mykoin.core.fiis.storage.ProfileStorage
+import com.study.mykoin.domain.fiis.updateFii
+import com.study.mykoin.helper.handle
 import com.study.mykoin.helper.otherwise
-
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
-class FiiEntryService: ConsumerHandler {
+class FiiEntryService : ConsumerHandler {
     private val logger = LoggerFactory.getLogger(FiiEntryService::class.java)
 
     @Autowired
@@ -24,10 +24,30 @@ class FiiEntryService: ConsumerHandler {
     @Autowired
     private lateinit var profileStorage: ProfileStorage
 
+    override fun handler(key: String, record: String) {
+        // try {
+        record.mapToFiiEntry()
+            .flatMap { fiiEntry ->
+                fiiHistoryStorage.save(fiiEntry).also { logger.info("New entry received '${fiiEntry.name}'") }
+            }.flatMap { fiiEntry ->
+                fiiWalletStorage.findByName(fiiEntry.name).flatMap {
+                    it?.let {
+                        it.updateFii(fiiEntry)
+                        fiiWalletStorage.upsert(it).also { modified ->
+                            logger.info("[WALLET-STORAGE] '${fiiEntry.name}' got updated! ($modified documents got modified)")
+                        }
+                    }.otherwise {
+                        fiiWalletStorage.save(record.mapToFii()).flatMap {
+                            profileStorage.upsert(fiiEntry.userId, it.id!!)
+                        }.also {
+                            logger.info("[WALLET-STORAGE] Inserted '${fiiEntry.name}' in the wallet")
+                            logger.info("[PROFILE-STORAGE] Updated profile with the new fii '${fiiEntry.id}'")
+                        }
+                    }
+                }
+            }.handle()
 
-    override fun handler(key: String, record: String){
-        try {
-            val fiiEntry = record.mapToFiiEntry()
+            /*
             fiiHistoryStorage.save(fiiEntry).also { logger.info("New entry received '${fiiEntry.name}'") }       // Save FII in log table
 
             fiiWalletStorage.findByName(fiiEntry.name)                         // Checks if it already exists in wallet collection
@@ -46,11 +66,14 @@ class FiiEntryService: ConsumerHandler {
                         logger.info("[PROFILE-STORAGE] Updated profile with the new fii '${fiiEntry.id}'")
                     }
                 }
+             */
 
+            /*
         } catch(e: Exception) {
             logger.error(e.message)
             e.printStackTrace()
             ServiceErrors.BadRequest("Erro!!!!")
         }
+             */
     }
 }

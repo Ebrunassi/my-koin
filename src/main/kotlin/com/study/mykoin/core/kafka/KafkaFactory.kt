@@ -1,12 +1,21 @@
 package com.study.mykoin.core.kafka
 
+import com.study.mykoin.core.fiis.domain.events.DomainEvent
 import com.study.mykoin.core.fiis.service.ConsumerHandler
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
-import org.apache.kafka.clients.producer.ProducerConfig.*
+import org.apache.kafka.clients.producer.ProducerConfig.ACKS_CONFIG
+import org.apache.kafka.clients.producer.ProducerConfig.BATCH_SIZE_CONFIG
+import org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG
+import org.apache.kafka.clients.producer.ProducerConfig.COMPRESSION_TYPE_CONFIG
+import org.apache.kafka.clients.producer.ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG
+import org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG
+import org.apache.kafka.clients.producer.ProducerConfig.LINGER_MS_CONFIG
+import org.apache.kafka.clients.producer.ProducerConfig.RETRIES_CONFIG
+import org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.errors.TopicExistsException
@@ -16,7 +25,7 @@ import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.time.Duration
-import java.util.*
+import java.util.Properties
 import java.util.concurrent.ExecutionException
 
 @Component
@@ -33,7 +42,7 @@ class KafkaFactory() {
     /**
      * Returns a consumer ready to go!
      */
-    fun getConsumer(consumerGroup: String, topics: Collection<String>): KafkaConsumer<String, String>{
+    fun getConsumer(consumerGroup: String, topics: Collection<String>): KafkaConsumer<String, String> {
         val consumerProperties = Properties().apply {
             this[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = "$KAFKA_HOST:$KAFKA_PORT"
             this[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
@@ -59,7 +68,7 @@ class KafkaFactory() {
 
         // Set high throughput producer configs
         producerProperties[LINGER_MS_CONFIG] = "20"
-        producerProperties[BATCH_SIZE_CONFIG] = Integer.toString(32 * 1024)      // 32KB
+        producerProperties[BATCH_SIZE_CONFIG] = Integer.toString(32 * 1024) // 32KB
         producerProperties[COMPRESSION_TYPE_CONFIG] = "snappy"
 
         return KafkaProducer<String, String>(producerProperties)
@@ -67,7 +76,7 @@ class KafkaFactory() {
 
     @Deprecated(message = "Use 'getProducer' instead")
     fun getProducerProperties(): Properties {
-        if(producerProperties == null) {
+        if (producerProperties == null) {
             val prop = Properties()
             prop[BOOTSTRAP_SERVERS_CONFIG] = "$KAFKA_HOST:$KAFKA_PORT"
             prop[KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.qualifiedName
@@ -80,7 +89,7 @@ class KafkaFactory() {
 
             // Set high throughput producer configs
             prop[LINGER_MS_CONFIG] = "20"
-            prop[BATCH_SIZE_CONFIG] = Integer.toString(32 * 1024)      // 32KB
+            prop[BATCH_SIZE_CONFIG] = Integer.toString(32 * 1024) // 32KB
             prop[COMPRESSION_TYPE_CONFIG] = "snappy"
             producerProperties = prop
         }
@@ -89,7 +98,7 @@ class KafkaFactory() {
 
     @Deprecated(message = "Use 'getConsumer' instead")
     fun getConsumerProperties(consumerGroup: String): Properties {
-        if(consumerProperties == null) {
+        if (consumerProperties == null) {
             val prop = Properties()
             prop[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = "$KAFKA_HOST:$KAFKA_PORT"
             prop[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java.name
@@ -101,7 +110,6 @@ class KafkaFactory() {
         }
         return consumerProperties!!
     }
-
 
     /**
      * Not used at the moment, but it was tested and creates a topic automatically
@@ -118,12 +126,12 @@ class KafkaFactory() {
     }
 }
 
-fun <K,V> KafkaProducer<K,V>.sendMessage (topicName: String, key: K, value: V, logger: Logger){
+fun <K, V> KafkaProducer<K, V>.sendMessage(topicName: String, key: K, value: V, logger: Logger) {
     val producerRecord: ProducerRecord<K, V> = ProducerRecord(topicName, key, value)
     this.use { producer ->
         producer.send(producerRecord) {
                 record: RecordMetadata, exception: Exception? ->
-            if(exception != null && exception.stackTrace.isNotEmpty()) {
+            if (exception != null && exception.stackTrace.isNotEmpty()) {
                 throw Exception("Error in trying to send a message")
             } else {
                 logger.info("Sent new message to '$topicName' topic with key '$key': '$value'")
@@ -132,18 +140,33 @@ fun <K,V> KafkaProducer<K,V>.sendMessage (topicName: String, key: K, value: V, l
     }
 }
 
-fun <K,V : Any> KafkaConsumer<K,V>.startConsuming(handlerService: ConsumerHandler, logger: Logger) {
-        var totalCount = 0L
-        this.use {
-            while (true) {
-                totalCount = this
-                    .poll(Duration.ofSeconds(2))
-                    .fold(totalCount) { accumulator, record ->
-                        val newCount = accumulator + 1
-                        logger.info("Consumed record with key ${record.key()} and value ${record.value()}, and updated total count to $newCount")
-                        handlerService.handler(record.key().toString(), record.value().toString())
-                        newCount
-                    }
+fun KafkaProducer<String, String>.dispatchEvent(domainEvent: DomainEvent) {
+    val producerRecord: ProducerRecord<String, String> = ProducerRecord(domainEvent.topicName, domainEvent.key, domainEvent.value)
+    this.use { producer ->
+        with(domainEvent) {
+            producer.send(producerRecord) { record: RecordMetadata, exception: Exception? ->
+                if (exception != null && exception.stackTrace.isNotEmpty()) {
+                    throw Exception("Error in trying to send a message")
+                } else {
+                    this.logger.info("Sent new message to '$topicName' topic with key '$key': '$value'")
+                }
             }
         }
+    }
+}
+
+fun <K, V : Any> KafkaConsumer<K, V>.startConsuming(handlerService: ConsumerHandler, logger: Logger) {
+    var totalCount = 0L
+    this.use {
+        while (true) {
+            totalCount = this
+                .poll(Duration.ofSeconds(2))
+                .fold(totalCount) { accumulator, record ->
+                    val newCount = accumulator + 1
+                    logger.info("Consumed record with key ${record.key()} and value ${record.value()}, and updated total count to $newCount")
+                    handlerService.handler(record.key().toString(), record.value().toString())
+                    newCount
+                }
+        }
+    }
 }

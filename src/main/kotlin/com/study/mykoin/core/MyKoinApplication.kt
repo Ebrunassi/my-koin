@@ -1,8 +1,10 @@
 package com.study.mykoin.core
 
 import com.study.mykoin.core.crawler.Krawler
+import com.study.mykoin.core.fiis.consumer.DomainEventsConsumer
 import com.study.mykoin.core.fiis.consumer.FiiEntryConsumer
 import com.study.mykoin.core.fiis.consumer.FiiWalletConsumer
+import com.study.mykoin.core.fiis.consumer.ProfileConsumer
 import io.thelandscape.krawler.crawler.KrawlConfig
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
@@ -12,9 +14,8 @@ import org.springframework.context.annotation.Bean
 import java.util.concurrent.Executors
 import kotlin.system.exitProcess
 
-
 @SpringBootApplication
-class MyKoinApplication(){
+class MyKoinApplication() {
 
     private val logger = LoggerFactory.getLogger("Application")
     private lateinit var job: Job
@@ -23,14 +24,13 @@ class MyKoinApplication(){
         logger.info("Starting My Koin...") // TODO - Write some fancy MyKoin logo
         val context = Executors.newFixedThreadPool(3).asCoroutineDispatcher()
         job = coroutineScope {
-            launch (context) {
+            launch(context) {
                 startKafkaProducer(this)
                 startKafkaConsumer(this)
                 startKrawler(this)
             }
         }
     }
-
 
     // Maybe it can be used later
     @Bean
@@ -42,13 +42,15 @@ class MyKoinApplication(){
         logger.info("Starting consumers...")
         FiiEntryConsumer().init().also { logger.info("FiiEntryConsumer has been started successfully") }
         FiiWalletConsumer().init().also { logger.info("FiiWalletConsumer has been started successfully") }
+        //ProfileConsumer().init().also { logger.info("ProfileConsumer has been started successfully") }
+        DomainEventsConsumer().init().also { logger.info("ProfileConsumer has been started successfully") }
         logger.info("All consumers has been started!")
     }
     suspend fun startKrawler(coroutineScope: CoroutineScope) {
         try {
             Krawler().init()
             logger.info("The Krawler routine has been set to start automatically")
-        } catch( e: Exception) {
+        } catch (e: Exception) {
             logger.error("Error while instantiating krawler: ${e.message}")
         }
     }
@@ -58,7 +60,6 @@ class MyKoinApplication(){
         runBlocking { job.cancelAndJoin() }
         logger.info("Application shutdown complete")
     }
-
 }
 
 suspend fun main(args: Array<String>) {
@@ -72,5 +73,4 @@ suspend fun main(args: Array<String>) {
     } catch (e: Exception) {
         exitProcess(1)
     }
-
 }

@@ -15,7 +15,7 @@ import org.springframework.data.mongodb.core.mapping.Document
  */
 @Document(collection = "fiis-wallet")
 @Serializable
-class Fii (
+class Fii(
     @Id
     var id: Long?,
     val name: String,
@@ -26,12 +26,12 @@ class Fii (
     var averagePrice: Double,
     var totalInvested: Double,
     val currency: CurrencyEnum?,
-    var monthlyIncome: Double,      // Regarding only to this fii
+    var monthlyIncome: Double, // Regarding only to this fii
     var lastIncome: LastIncome = LastIncome(),
     var nextIncome: NextIncome = NextIncome(),
     var porcent: Double
-){
-    companion object{
+) {
+    companion object {
         @Transient
         const val SEQUENCE_NAME = "fiis-wallet-sequence"
     }

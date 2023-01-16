@@ -22,8 +22,7 @@ repositories {
     mavenCentral()
     maven { url = uri("https://repo.spring.io/milestone") }
     maven { url = uri("https://repo.spring.io/snapshot") }
-    maven { url = uri ("https://jitpack.io") }
-
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
@@ -35,7 +34,6 @@ dependencies {
 
     // Crawler
     implementation("com.github.brianmadden:krawler:0.4.4")
-
 
     implementation("org.springframework.boot:spring-boot-dependencies:2.7.4")
 

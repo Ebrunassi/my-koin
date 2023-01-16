@@ -23,7 +23,7 @@ import org.springframework.web.reactive.function.server.bodyToMono
 @Component
 class ProfileController {
     // TODO - Continue from here. Create an POST and GET endpoint
-    private val logger : Logger = LoggerFactory.getLogger(FiiController::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(FiiController::class.java)
 
     @Autowired
     private lateinit var factory: KafkaFactory
@@ -33,7 +33,7 @@ class ProfileController {
             .map { profileDTO ->
                 profileDTO.apply {
                     fiiWallet = emptyList<String>()
-                    password = "******"     // TODO - hide password here
+                    password = "******" // TODO - hide password here
                     monthlyIncome = 0.toDouble()
                     totalInvested = 0.toDouble()
                 }
