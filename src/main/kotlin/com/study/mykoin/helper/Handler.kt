@@ -17,6 +17,7 @@ suspend fun <L, R> Either<L, R>.handleCall(): ServerResponse {
             when (response) {
                 is ServiceResponse.HelloMyKoin -> ServerResponse.ok().bodyValueAndAwait(response.greetings)
                 is ServiceResponse.EventSubmited -> ServerResponse.status(response.statusCode).bodyValueAndAwait(response.message)
+                is ServiceResponse.EntryCreated -> ServerResponse.status(response.statusCode).bodyValueAndAwait(response.message)
                 else -> ServerResponse.status(HttpStatus.I_AM_A_TEAPOT).bodyValueAndAwait("This response will no longer exists in a new future")
             }
         },

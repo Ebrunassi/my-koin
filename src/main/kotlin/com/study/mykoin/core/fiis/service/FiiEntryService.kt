@@ -1,13 +1,18 @@
 package com.study.mykoin.core.fiis.service
 
-import arrow.core.flatMap
+import arrow.core.*
+import arrow.core.continuations.either
+import com.study.mykoin.core.common.errors.ServiceErrors
+import com.study.mykoin.core.common.response.ServiceResponse
 import com.study.mykoin.core.fiis.helpers.mapToFii
 import com.study.mykoin.core.fiis.helpers.mapToFiiEntry
 import com.study.mykoin.core.fiis.storage.FiiHistoryStorage
 import com.study.mykoin.core.fiis.storage.FiiWalletStorage
 import com.study.mykoin.core.fiis.storage.ProfileStorage
+import com.study.mykoin.domain.fiis.FiiEntry
 import com.study.mykoin.domain.fiis.updateFii
 import com.study.mykoin.helper.handle
+import com.study.mykoin.helper.handleCall
 import com.study.mykoin.helper.otherwise
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,6 +29,7 @@ class FiiEntryService : ConsumerHandler {
     @Autowired
     private lateinit var profileStorage: ProfileStorage
 
+    @Deprecated("This method will be deprecated soon. It does not make sense to handle entry information async.")
     override fun handler(key: String, record: String) {
         // try {
         record.mapToFiiEntry()
@@ -46,34 +52,34 @@ class FiiEntryService : ConsumerHandler {
                     }
                 }
             }.handle()
+    }
 
-            /*
-            fiiHistoryStorage.save(fiiEntry).also { logger.info("New entry received '${fiiEntry.name}'") }       // Save FII in log table
-
-            fiiWalletStorage.findByName(fiiEntry.name)                         // Checks if it already exists in wallet collection
-                ?.let {
-                    it.updateFii(fiiEntry)
-                    fiiWalletStorage.upsert(it)                                 // If it exists, update the wallet
-                        .also { modified ->
+    fun syncHandler(record: String) = either.eager {
+        record.mapToFiiEntry()
+            .map { fiiEntry ->
+                profileStorage.findById(fiiEntry.userId).bind()       // Short circuit here whether it doesn't find any profile
+                fiiEntry
+            }.flatMap { fiiEntry ->
+                fiiWalletStorage.findByName(fiiEntry.name).flatMap {
+                    it?.let {
+                        it.updateFii(fiiEntry)
+                        fiiWalletStorage.upsert(it).also { modified ->
                             logger.info("[WALLET-STORAGE] '${fiiEntry.name}' got updated! ($modified documents got modified)")
                         }
-                }.otherwise {
-                    fiiWalletStorage.save(record.mapToFii()).let {              // Saves a new record if didn't find anything and also update the information in profile's collection
-                        profileStorage.upsert(fiiEntry.userId, it.id!!)
-                    //profileStorage.upsert(fiiEntity.name, it.id!!)
-                    }.also {
-                        logger.info("[WALLET-STORAGE] Inserted '${fiiEntry.name}' in the wallet")
-                        logger.info("[PROFILE-STORAGE] Updated profile with the new fii '${fiiEntry.id}'")
+                    }.otherwise {
+                        fiiWalletStorage.save(record.mapToFii()).flatMap {
+                            profileStorage.upsert(fiiEntry.userId, it.id!!)
+                        }.also {
+                            logger.info("[WALLET-STORAGE] Inserted '${fiiEntry.name}' in the wallet")
+                            logger.info("[PROFILE-STORAGE] Updated profile with the new fii '${fiiEntry.id}'")
+                        }
+                    }.flatMap {
+                        fiiHistoryStorage.save(fiiEntry).also { logger.info("New entry received '${fiiEntry.name}'") }
+                    }.map {
+                        ServiceResponse.EntryCreated("The entry ${fiiEntry.name} has been created successfully")
                     }
                 }
-             */
-
-            /*
-        } catch(e: Exception) {
-            logger.error(e.message)
-            e.printStackTrace()
-            ServiceErrors.BadRequest("Erro!!!!")
-        }
-             */
+            }.bind()
     }
+
 }

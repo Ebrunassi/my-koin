@@ -20,6 +20,10 @@ sealed interface ServiceErrors {
         val uuid = UUID.randomUUID().toString()
     }
 
+    data class FiiWalletNotFound(val reason: String) : ServiceErrors {
+        val uuid = UUID.randomUUID().toString()
+    }
+
     data class ProfileNotFound(val reason: String) : ServiceErrors {
         val uuid = UUID.randomUUID().toString()
     }

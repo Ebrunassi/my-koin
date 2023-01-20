@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus
 
 /**
  * This interface contains all the possible response in the system
- * Please add any other response data class you see that could be exists
+ * Please add any other response data class you see that could exist
  */
 sealed interface ServiceResponse {
 
@@ -13,6 +13,10 @@ sealed interface ServiceResponse {
     data class HelloMyKoin(val greetings: String)
     @Serializable
     data class EventSubmited(val message: String) {
+        val statusCode: HttpStatus = HttpStatus.CREATED
+    }
+    @Serializable
+    data class EntryCreated(val message: String) {
         val statusCode: HttpStatus = HttpStatus.CREATED
     }
 }

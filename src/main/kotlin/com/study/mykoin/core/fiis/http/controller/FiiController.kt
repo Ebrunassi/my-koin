@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.study.mykoin.core.common.errors.ServiceErrors
 import com.study.mykoin.core.common.response.ServiceResponse
 import com.study.mykoin.core.fiis.model.FiiEntryDTO
+import com.study.mykoin.core.fiis.service.FiiEntryService
 import com.study.mykoin.core.fiis.storage.ProfileStorage
 import com.study.mykoin.core.kafka.KafkaFactory
 import com.study.mykoin.core.kafka.TopicEnum
@@ -33,6 +34,8 @@ class FiiController {
     private lateinit var factory: KafkaFactory
     @Autowired
     private lateinit var profileStorage: ProfileStorage
+    @Autowired
+    private lateinit var fiiEntryService: FiiEntryService
 
     private class Response(val description: String)
     fun getActualDate(): String? {
@@ -53,17 +56,9 @@ class FiiController {
                     transactionDate = transactionDate ?: getActualDate()
                 }
             }
-         .flatMap {
-             factory.getProducer().sendMessage(
-                 TopicEnum.FIIS_HISTORY_TOPIC.topicName,
-                 it.name,
-                 jsonMapper().writeValueAsString(it),
-                 logger
-             )
-
-             //ServiceErrors.BadRequest("Erro!!!!").left()
-             ServiceResponse.EventSubmited("The event was sent successfully!").right()
-        }
+            .flatMap {
+                fiiEntryService.syncHandler(jsonMapper().writeValueAsString(it))
+            }
             .handleCall()
 
 
