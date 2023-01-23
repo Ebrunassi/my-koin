@@ -16,18 +16,15 @@ class DomainEventsService: ConsumerHandler {
     @Autowired
     lateinit var factory: KafkaFactory
     @Autowired
-    lateinit var profileStorage: ProfileStorage
+    lateinit var profileService: ProfileService
 
     // Key: kind of event enum
     // Value: content
     override fun handler(key: String, record: String) {
         when(EventType.valueOf(key)) {
-            EventType.FII_INFORMATION_UPDATED -> { updatedFiiInformationHandler(record.mapToFii()) }
+            EventType.FII_INFORMATION_UPDATED -> { profileService.updatedFiiInformationHandler(record.mapToFii()) }
+            EventType.PROFILE_UPDATE_MONTHINCOME -> {}
+            // TODO - Update with more events handler in the future
         }
-    }
-
-    private fun updatedFiiInformationHandler(fii: Fii) {
-
-        // Once I got here, it's implicit that {fii} got modified with new values, so we need to update monthlyIncome from profile
     }
 }

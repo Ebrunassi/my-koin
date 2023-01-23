@@ -2,17 +2,14 @@ package com.study.mykoin.core.fiis.service
 
 import arrow.core.*
 import arrow.core.continuations.either
-import com.study.mykoin.core.common.errors.ServiceErrors
 import com.study.mykoin.core.common.response.ServiceResponse
 import com.study.mykoin.core.fiis.helpers.mapToFii
 import com.study.mykoin.core.fiis.helpers.mapToFiiEntry
 import com.study.mykoin.core.fiis.storage.FiiHistoryStorage
 import com.study.mykoin.core.fiis.storage.FiiWalletStorage
 import com.study.mykoin.core.fiis.storage.ProfileStorage
-import com.study.mykoin.domain.fiis.FiiEntry
 import com.study.mykoin.domain.fiis.updateFii
 import com.study.mykoin.helper.handle
-import com.study.mykoin.helper.handleCall
 import com.study.mykoin.helper.otherwise
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,7 +41,7 @@ class FiiEntryService : ConsumerHandler {
                         }
                     }.otherwise {
                         fiiWalletStorage.save(record.mapToFii()).flatMap {
-                            profileStorage.upsert(fiiEntry.userId, it.id!!)
+                            profileStorage.upsertFiiWallet(fiiEntry.userId, it.id!!)
                         }.also {
                             logger.info("[WALLET-STORAGE] Inserted '${fiiEntry.name}' in the wallet")
                             logger.info("[PROFILE-STORAGE] Updated profile with the new fii '${fiiEntry.id}'")
@@ -68,7 +65,7 @@ class FiiEntryService : ConsumerHandler {
                         }
                     }.otherwise {
                         fiiWalletStorage.save(record.mapToFii()).flatMap {
-                            profileStorage.upsert(fiiEntry.userId, it.id!!)
+                            profileStorage.upsertFiiWallet(fiiEntry.userId, it.id!!)
                         }.also {
                             logger.info("[WALLET-STORAGE] Inserted '${fiiEntry.name}' in the wallet")
                             logger.info("[PROFILE-STORAGE] Updated profile with the new fii '${fiiEntry.id}'")

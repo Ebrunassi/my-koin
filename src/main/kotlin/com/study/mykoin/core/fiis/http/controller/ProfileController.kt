@@ -10,6 +10,7 @@ import com.study.mykoin.core.fiis.model.ProfileDTO
 import com.study.mykoin.core.kafka.KafkaFactory
 import com.study.mykoin.core.kafka.TopicEnum
 import com.study.mykoin.core.kafka.sendMessage
+import com.study.mykoin.domain.fiis.MonthIncome
 import com.study.mykoin.helper.handleCall
 import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.Logger
@@ -34,7 +35,7 @@ class ProfileController {
                 profileDTO.apply {
                     fiiWallet = emptyList<String>()
                     password = "******" // TODO - hide password here
-                    monthlyIncome = 0.toDouble()
+                    monthIncome = emptyList<MonthIncome>()
                     totalInvested = 0.toDouble()
                 }
             }.flatMap {

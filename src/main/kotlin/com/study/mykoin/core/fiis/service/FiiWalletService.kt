@@ -42,14 +42,14 @@ class FiiWalletService : ConsumerHandler {
                         }
                     }
                 }
-                .map { it ->
-                    it?.let {
+                .map { fiiUpdated ->
+                    fiiUpdated?.let {
                         fiiWalletStorage.upsert(it).map {
                             if (it > 0) {
-                                factory.getProducer().dispatchEvent(DomainEvent.FiiInformationUpdated(fii, fii.userId))     // It will dispatch only those fiis which got new information from crawler
+                                factory.getProducer().dispatchEvent(DomainEvent.FiiInformationUpdated(fiiUpdated, fiiUpdated.userId))     // It will dispatch only those fiis which got new information from crawler
                             }
                         }
-                        logger.info("[WALLET-STORAGE] '${it.name}' - updated values after Krawler execution")
+                        logger.info("[WALLET-STORAGE] '${fiiUpdated.name}' - updated values after Krawler execution")
                     }
                 }
         }.handle()

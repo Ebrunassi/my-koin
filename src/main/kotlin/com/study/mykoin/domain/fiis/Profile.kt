@@ -11,7 +11,7 @@ class Profile(
     var id: Long?,
     val username: String,
     var password: String,
-    var monthIncome: Double, // Regarding all the incomes this user has
+    var monthIncome: Collection<MonthIncome> = emptyList(), // Regarding all the incomes this user has
     var totalInvested: Double,
     var fiiWallet: Collection<Long> = emptyList()
 ) {

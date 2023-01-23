@@ -43,7 +43,7 @@ class MyKoinApplication() {
         FiiEntryConsumer().init().also { logger.info("FiiEntryConsumer has been started successfully") }
         FiiWalletConsumer().init().also { logger.info("FiiWalletConsumer has been started successfully") }
         //ProfileConsumer().init().also { logger.info("ProfileConsumer has been started successfully") }
-        DomainEventsConsumer().init().also { logger.info("ProfileConsumer has been started successfully") }
+        DomainEventsConsumer().init().also { logger.info("DomainEventsConsumer has been started successfully") }
         logger.info("All consumers has been started!")
     }
     suspend fun startKrawler(coroutineScope: CoroutineScope) {

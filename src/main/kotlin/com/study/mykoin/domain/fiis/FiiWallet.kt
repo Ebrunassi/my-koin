@@ -8,6 +8,8 @@ import com.study.mykoin.core.fiis.model.enums.ResourceTypeEnum
 import kotlinx.serialization.Serializable
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 /**
  * This domain is used in FiiWallet collection.
@@ -41,4 +43,19 @@ fun Fii.updateFii(updatedFii: FiiEntry) {
     quantity += updatedFii.quantity
     totalInvested += updatedFii.totalInvested
     averagePrice = totalInvested / quantity
+}
+
+fun Fii.thisMonthIncome(): Double? {
+    val pattern = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+    val lastIncome = with(this.lastIncome.payDay) { if (this?.contains("-") == false) this else null}
+    val nextIncome = with(this.nextIncome.payDay) { if (this?.contains("-") == false) this else null}
+
+    val lastIncomeDate = lastIncome?.let { LocalDate.parse(it, pattern) }
+    val nextIncomeDate = nextIncome?.let { LocalDate.parse(it, pattern) }
+    val actualDate = LocalDate.now()
+
+    return if (lastIncomeDate?.monthValue == actualDate.monthValue) this.lastIncome.value
+    else if (nextIncomeDate?.monthValue == actualDate.monthValue) this.nextIncome.value
+    else null
 }

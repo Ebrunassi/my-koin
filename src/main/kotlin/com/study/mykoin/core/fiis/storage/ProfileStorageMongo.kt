@@ -6,15 +6,15 @@ import arrow.core.left
 import arrow.core.right
 import com.study.mykoin.core.common.errors.ServiceErrors
 import com.study.mykoin.core.common.storage.SequenceGenerator
+import com.study.mykoin.domain.fiis.MonthIncome
 import com.study.mykoin.domain.fiis.Profile
-import com.study.mykoin.helper.otherwise
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.MongoOperations
-import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
+import org.springframework.data.mongodb.core.updateFirst
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -45,7 +45,7 @@ class ProfileStorageMongo : ProfileStorage {
         return mongo.find(query, Profile::class.java).firstOrNull()
     }
 
-    override fun upsert(userId: Long, fiiWalletId: Long): Either<ServiceErrors, Long> {
+    override fun upsertFiiWallet(userId: Long, fiiWalletId: Long): Either<ServiceErrors, Long> {
         return try {
             val query = Query(Criteria.where("id").`is`(userId))
             val update = Update()
@@ -55,4 +55,31 @@ class ProfileStorageMongo : ProfileStorage {
             ServiceErrors.InternalError(e.message ?: "Error in upserting data in database: ${e.localizedMessage}").left()
         }
     }
+
+    override fun createMonthIncome(userId: Long, monthIncome: MonthIncome): Either<ServiceErrors, Long> =
+        either.runCatching {
+            val query = Query(Criteria.where("id").`is`(userId))
+            val update = Update()
+                .addToSet("monthIncome", monthIncome)
+            mongo.updateFirst(query, update, Profile::class.java).modifiedCount.right()
+        }.getOrElse {
+            ServiceErrors.InternalError(it.message ?: "Error in upserting data in database: ${it.localizedMessage}").left()
+        }
+
+    override fun updateMonthIncome(userId: Long, newMonthIncome: MutableSet<MonthIncome>): Either<ServiceErrors, Long> =
+        either.runCatching {
+            val query = Query(Criteria.where("id").`is`(userId))
+            val update = Update().set("monthIncome", newMonthIncome)
+            mongo.updateFirst(query, update, Profile::class.java).modifiedCount.right()
+        }.getOrElse {
+            ServiceErrors.InternalError(it.message ?: "Error in upserting data in database: ${it.localizedMessage}").left()
+        }
+
+    override fun listAll(): Either<ServiceErrors, List<Profile>> =
+        either.runCatching {
+            mongo.findAll(Profile::class.java).right()
+        }.getOrElse {
+            ServiceErrors.InternalError("Something wrong happened when listing all the profiles: ${it.message}").left()
+        }
+
 }
