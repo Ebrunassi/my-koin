@@ -24,7 +24,7 @@ class Schedule {
      * Responsible to update the list 'monthIncome' from Profile.
      * Every new month it will create a new object containing the fii's income information of the month
      */
-    @Scheduled(cron = "0 * * * * *")    // every minute
+    @Scheduled(cron = "0 * * * * *") // every minute
     fun updateMonthIncomeFromProfile() {
         profileStorage.listAll().map {
             it.forEach { profile ->

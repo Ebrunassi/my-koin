@@ -81,5 +81,4 @@ class ProfileStorageMongo : ProfileStorage {
         }.getOrElse {
             ServiceErrors.InternalError("Something wrong happened when listing all the profiles: ${it.message}").left()
         }
-
 }

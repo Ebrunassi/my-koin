@@ -4,13 +4,10 @@ import arrow.core.*
 import arrow.core.continuations.either
 import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.study.mykoin.core.common.errors.ServiceErrors
-import com.study.mykoin.core.common.response.ServiceResponse
 import com.study.mykoin.core.fiis.model.FiiEntryDTO
 import com.study.mykoin.core.fiis.service.FiiEntryService
 import com.study.mykoin.core.fiis.storage.ProfileStorage
 import com.study.mykoin.core.kafka.KafkaFactory
-import com.study.mykoin.core.kafka.TopicEnum
-import com.study.mykoin.core.kafka.sendMessage
 import com.study.mykoin.helper.handleCall
 import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.Logger
@@ -60,7 +57,6 @@ class FiiController {
                 fiiEntryService.syncHandler(jsonMapper().writeValueAsString(it))
             }
             .handleCall()
-
 
     suspend fun getEntry(request: ServerRequest): ServerResponse {
         return ServerResponse.status(HttpStatus.OK).bodyValueAndAwait("")

@@ -7,6 +7,7 @@ import arrow.core.right
 import com.study.mykoin.core.common.errors.ServiceErrors
 import com.study.mykoin.core.common.storage.SequenceGenerator
 import com.study.mykoin.domain.fiis.Fii
+import com.study.mykoin.domain.fiis.MonthInformation
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.MongoOperations
@@ -57,16 +58,13 @@ class FiiWalletStorageMongo : FiiWalletStorage {
                 .set("quantity", fii.quantity)
                 .set("totalInvested", fii.totalInvested)
                 .set("averagePrice", fii.averagePrice)
-                .set(
-                    "monthlyIncome",
-                    fii.monthlyIncome
-                ) // TODO - Probably we will need to set new values for other attributes too
+                .set("actualMonth", fii.actualMonth)
+                .set("nextMonth", fii.nextMonth)
                 .set("lastIncome", fii.lastIncome)
                 .set("nextIncome", fii.nextIncome)
 
-            mongo.updateFirst(query, update, Fii::class.java).modifiedCount.right()     // It will return > 0 if something was really changed from the previous data
+            mongo.updateFirst(query, update, Fii::class.java).modifiedCount.right() // It will return > 0 if something was really changed from the previous data
         }.getOrElse {
             ServiceErrors.InternalError(it.message ?: "Error in upserting data in database: ${it.localizedMessage}").left()
         }
-
 }

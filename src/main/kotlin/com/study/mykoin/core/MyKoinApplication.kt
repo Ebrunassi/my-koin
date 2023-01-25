@@ -4,7 +4,6 @@ import com.study.mykoin.core.crawler.Krawler
 import com.study.mykoin.core.fiis.consumer.DomainEventsConsumer
 import com.study.mykoin.core.fiis.consumer.FiiEntryConsumer
 import com.study.mykoin.core.fiis.consumer.FiiWalletConsumer
-import com.study.mykoin.core.fiis.consumer.ProfileConsumer
 import io.thelandscape.krawler.crawler.KrawlConfig
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
@@ -42,7 +41,7 @@ class MyKoinApplication() {
         logger.info("Starting consumers...")
         FiiEntryConsumer().init().also { logger.info("FiiEntryConsumer has been started successfully") }
         FiiWalletConsumer().init().also { logger.info("FiiWalletConsumer has been started successfully") }
-        //ProfileConsumer().init().also { logger.info("ProfileConsumer has been started successfully") }
+        // ProfileConsumer().init().also { logger.info("ProfileConsumer has been started successfully") }
         DomainEventsConsumer().init().also { logger.info("DomainEventsConsumer has been started successfully") }
         logger.info("All consumers has been started!")
     }

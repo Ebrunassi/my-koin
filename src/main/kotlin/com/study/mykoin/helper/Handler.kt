@@ -25,7 +25,7 @@ suspend fun <L, R> Either<L, R>.handleCall(): ServerResponse {
             when (error) {
                 is ServiceErrors.BadRequest -> badRequestResponse("An error happened: ${error.reason}")
                 is ServiceErrors.ProfileNotFound -> badRequestResponse(error.reason)
-                else -> errorResponse(HttpStatus.I_AM_A_TEAPOT, "This error will no longer exists in a new future")
+                else -> errorResponse(HttpStatus.I_AM_A_TEAPOT, "This error will no longer exists in a new future $error")
             }
         }
     )

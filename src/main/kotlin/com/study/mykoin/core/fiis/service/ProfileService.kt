@@ -2,7 +2,6 @@ package com.study.mykoin.core.fiis.service
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.right
 import com.study.mykoin.core.common.errors.ServiceErrors
 import com.study.mykoin.core.fiis.helpers.mapToProfileEntity
 import com.study.mykoin.core.fiis.storage.FiiWalletStorage
@@ -54,13 +53,12 @@ class ProfileService : ConsumerHandler {
     fun updatedFiiInformationHandler(fii: Fii) {
         try {
             fii.thisMonthIncome()?.let {
-                val profiles = profileStorage.findById(fii.userId)     // find profile who owns this fii to update it's information
+                val profiles = profileStorage.findById(fii.userId) // find profile who owns this fii to update it's information
                 profiles
             }?.map {
                 updateMonthIncome(it)
             }
-
-        } catch (e : Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
         }
     }
@@ -75,14 +73,17 @@ class ProfileService : ConsumerHandler {
         var totalInvested = 0.0
         val monthIncomeValue = profile.fiiWallet
             .map {
-                fiiWalletStorage.findById(it).also { totalInvested += it?.totalInvested ?: 0.0}       // Get the Fiis from database
-            }.filter {
+                fiiWalletStorage.findById(it).also { totalInvested += it?.totalInvested ?: 0.0 } // Get the Fiis from database
+            }
+            /*.filter {
                 it?.thisMonthIncome() != null       // Filter out those which doesn't have information for the current month
-            }.also { count = it.size }
+            }.also { count = it.size }*/
             .map {
-                (it?.thisMonthIncome()?.times(it.quantity)) ?: 0.0
+                it?.actualMonth?.monthlyIncome ?: 0.0
+                // (it?.thisMonthIncome()?.times(it.quantity)) ?: 0.0
             }.reduce {
-                sum, element -> sum + element
+                    sum, element ->
+                sum + element
             }
 
         val actualDate = actualTimeWindow()
@@ -101,3 +102,4 @@ class ProfileService : ConsumerHandler {
 }
 
 fun actualTimeWindow() = with(LocalDate.now()) { "${this.monthValue}/${this.year}" }
+fun nextTimeWindow() = with(LocalDate.now()) { "${this.monthValue+1}/${this.year}" }

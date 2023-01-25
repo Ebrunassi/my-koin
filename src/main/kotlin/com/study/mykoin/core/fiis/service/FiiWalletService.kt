@@ -1,15 +1,15 @@
 package com.study.mykoin.core.fiis.service
 
-import arrow.core.*
-import arrow.core.continuations.either
-import com.study.mykoin.core.common.errors.ServiceErrors
 import com.study.mykoin.core.fiis.domain.events.DomainEvent
 import com.study.mykoin.core.fiis.helpers.mapToFii
+import com.study.mykoin.core.fiis.model.enums.WhenPaymentEnum
 import com.study.mykoin.core.fiis.storage.FiiWalletStorage
 import com.study.mykoin.core.kafka.KafkaFactory
 import com.study.mykoin.core.kafka.dispatchEvent
+import com.study.mykoin.domain.fiis.nextMonthIncome
+import com.study.mykoin.domain.fiis.thisMonthIncome
+import com.study.mykoin.domain.fiis.whenPayment
 import com.study.mykoin.helper.handle
-import kotlinx.coroutines.reactive.publish
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -26,31 +26,39 @@ class FiiWalletService : ConsumerHandler {
      * key = fii's name
      * value = extracted information
      */
-    override fun handler(key: String, record: String)  =
+    override fun handler(key: String, record: String) =
         record.mapToFii()
             .let { fii ->
                 fiiWalletStorage.findByName(key)
-                .map {
-                    it?.apply {
-                        if (fii.lastIncome.value != null) {
-                            it.lastIncome = fii.lastIncome // 'lastIncome' updated
-                            it.monthlyIncome = fii.lastIncome.value!! * it.quantity // 'monthlyIncome' updated
-                        }
+                    .map {
+                        try {
+                            it?.apply {
+                                if (fii.lastIncome.value != null) { it.lastIncome = fii.lastIncome }
 
-                        if (fii.nextIncome.value != null) {
-                            it.nextIncome = fii.nextIncome // 'nextIncome' updated
-                        }
-                    }
-                }
-                .map { fiiUpdated ->
-                    fiiUpdated?.let {
-                        fiiWalletStorage.upsert(it).map {
-                            if (it > 0) {
-                                factory.getProducer().dispatchEvent(DomainEvent.FiiInformationUpdated(fiiUpdated, fiiUpdated.userId))     // It will dispatch only those fiis which got new information from crawler
+                                if (fii.nextIncome.value != null) { it.nextIncome = fii.nextIncome }
+
+                                with (it.thisMonthIncome()) {
+                                    it.actualMonth.monthlyIncome = (this ?: 0.0) * it.actualMonth.quantity
+                                    it.actualMonth.timeWindow = actualTimeWindow()
+                                }
+
+                                with (it.nextMonthIncome()) {
+                                    it.nextMonth.monthlyIncome = (this ?: 0.0) * it.nextMonth.quantity
+                                    it.nextMonth.timeWindow = nextTimeWindow()
+                                }
                             }
-                        }
-                        logger.info("[WALLET-STORAGE] '${fiiUpdated.name}' - updated values after Krawler execution")
+                        } catch (e: Exception) { e.printStackTrace() }
+                        it
                     }
-                }
-        }.handle()
+                    .map { fiiUpdated ->
+                        fiiUpdated?.let {
+                            fiiWalletStorage.upsert(it).map {
+                                if (it > 0) {
+                                    factory.getProducer().dispatchEvent(DomainEvent.FiiInformationUpdated(fiiUpdated, fiiUpdated.userId)) // It will dispatch only those fiis which got new information from crawler
+                                }
+                            }
+                            logger.info("[WALLET-STORAGE] '${fiiUpdated.name}' - updated values after Krawler execution")
+                        }
+                    }
+            }.handle()
 }
