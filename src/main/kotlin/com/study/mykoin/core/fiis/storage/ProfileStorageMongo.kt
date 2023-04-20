@@ -45,6 +45,7 @@ class ProfileStorageMongo : ProfileStorage {
         return mongo.find(query, Profile::class.java).firstOrNull()
     }
 
+    @Deprecated("It is not necessary to add the new fii wallet to profile Document, as it is already mapped in Fii-Wallet table through userId column")
     override fun upsertFiiWallet(userId: Long, fiiWalletId: Long): Either<ServiceErrors, Long> {
         return try {
             val query = Query(Criteria.where("id").`is`(userId))

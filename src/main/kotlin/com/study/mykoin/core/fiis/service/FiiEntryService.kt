@@ -11,6 +11,7 @@ import com.study.mykoin.core.fiis.storage.FiiHistoryStorage
 import com.study.mykoin.core.fiis.storage.FiiWalletStorage
 import com.study.mykoin.core.fiis.storage.ProfileStorage
 import com.study.mykoin.domain.fiis.MonthInformation
+import com.study.mykoin.domain.fiis.createFii
 import com.study.mykoin.domain.fiis.updateFii
 import com.study.mykoin.helper.handle
 import com.study.mykoin.helper.otherwise
@@ -43,12 +44,12 @@ class FiiEntryService : ConsumerHandler {
                             logger.info("[WALLET-STORAGE] '${fiiEntry.name}' got updated! ($modified documents got modified)")
                         }
                     }.otherwise {
-                        fiiWalletStorage.save(record.mapToFii()).flatMap {
-                            profileStorage.upsertFiiWallet(fiiEntry.userId, it.id!!)
-                        }.also {
-                            logger.info("[WALLET-STORAGE] Inserted '${fiiEntry.name}' in the wallet")
-                            logger.info("[PROFILE-STORAGE] Updated profile with the new fii '${fiiEntry.id}'")
-                        }
+                        fiiWalletStorage.save(record.mapToFii())
+                            //.flatMap { profileStorage.upsertFiiWallet(fiiEntry.userId, it.id!!) }
+                            .also {
+                                logger.info("[WALLET-STORAGE] Inserted '${fiiEntry.name}' in the wallet")
+                                logger.info("[PROFILE-STORAGE] Updated profile with the new fii '${fiiEntry.id}'")
+                            }
                     }
                 }
             }.handle()
@@ -56,16 +57,13 @@ class FiiEntryService : ConsumerHandler {
 
     fun syncHandler(record: String) = either.eager {
             record.mapToFiiEntry()
-                .map { fiiEntry ->
-                    profileStorage.findById(fiiEntry.userId)
-                        .bind() // Short circuit here whether it doesn't find any profile
+                .map { fiiEntry -> profileStorage.findById(fiiEntry.userId).bind()      // Short circuit here whether it doesn't find any profile
                     fiiEntry
                 }.flatMap { fiiEntry ->
                     fiiWalletStorage.findByName(fiiEntry.name).flatMap {
                         it?.let {
                             it.updateFii(fiiEntry)
-                            fiiWalletStorage.upsert(it).also { modified ->
-                                logger.info("[WALLET-STORAGE] '${fiiEntry.name}' got updated! ($modified documents got modified)")
+                            fiiWalletStorage.upsert(it).also { modified -> logger.info("[WALLET-STORAGE] '${fiiEntry.name}' got updated! ($modified documents got modified)")
                             }
                         }.otherwise {
                             record.mapToFii()
@@ -76,14 +74,13 @@ class FiiEntryService : ConsumerHandler {
                                     this.nextIncome = NextIncome()
                                 }
                                 .also {
-                                    it.updateFii(record.mapToFiiEntry().getOrHandle { throw Exception("") })
+                                    it.createFii(record.mapToFiiEntry().getOrHandle { throw Exception("") })
                                 }
                                 .let {
-                                    fiiWalletStorage.save(it).flatMap {
-                                        profileStorage.upsertFiiWallet(fiiEntry.userId, it.id!!)
-                                    }.also {
-                                        logger.info("[WALLET-STORAGE] Inserted '${fiiEntry.name}' in the wallet")
-                                        logger.info("[PROFILE-STORAGE] Updated profile with the new fii '${fiiEntry.id}'")
+                                    fiiWalletStorage.save(it)
+                                        //.flatMap { profileStorage.upsertFiiWallet(fiiEntry.userId, it.id!!) }     There is no need to insert FII id in Profile collection
+                                            .also { logger.info("[WALLET-STORAGE] Inserted '${fiiEntry.name}' in the wallet")
+                                        //logger.info("[PROFILE-STORAGE] Updated profile with the new fii '${fiiEntry.id}'")
                                     }
                                 }
                         }.flatMap {

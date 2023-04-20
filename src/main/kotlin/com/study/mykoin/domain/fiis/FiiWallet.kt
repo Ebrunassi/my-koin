@@ -5,6 +5,7 @@ import com.study.mykoin.core.crawler.model.NextIncome
 import com.study.mykoin.core.fiis.model.enums.FiiTypeEnum
 import com.study.mykoin.core.fiis.model.enums.ResourceTypeEnum
 import com.study.mykoin.core.fiis.model.enums.WhenPaymentEnum
+import com.study.mykoin.helper.otherwise
 import kotlinx.serialization.Serializable
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
@@ -56,37 +57,70 @@ fun Fii.updateFii(updatedFii: FiiEntry) {
             totalInvested += updatedFii.totalInvested
             averagePrice = totalInvested / quantity
         }
-        WhenPaymentEnum.NEXT_MONTH -> {
-            nextMonth.quantity += updatedFii.quantity
-            nextMonth.totalInvested += updatedFii.totalInvested
+        WhenPaymentEnum.NEXT_MONTH, WhenPaymentEnum.UNDEFINED -> {
+            nextMonth.quantity = updatedFii.quantity + quantity       // We sum the ammount of FII that was bought with the ammount we already have
+            nextMonth.totalInvested = updatedFii.totalInvested + totalInvested
             nextMonth.monthlyIncome = nextMonth.quantity * (this.nextMonthIncome() ?: 0.0)
 
             quantity += updatedFii.quantity
             totalInvested += updatedFii.totalInvested
             averagePrice = totalInvested / quantity
         }
-        WhenPaymentEnum.UNDEFINED -> {
-            nextMonth.quantity += updatedFii.quantity
-            nextMonth.totalInvested += updatedFii.totalInvested
-            nextMonth.monthlyIncome += nextMonth.quantity * (this.nextMonthIncome() ?: 0.0)
+        /*WhenPaymentEnum.UNDEFINED -> {
+            nextMonth.quantity = updatedFii.quantity + quantity
+            nextMonth.totalInvested = updatedFii.totalInvested + totalInvested
+            nextMonth.monthlyIncome = nextMonth.quantity * (this.nextMonthIncome() ?: 0.0)
 
             quantity = nextMonth.quantity
             totalInvested = nextMonth.totalInvested
+            averagePrice = totalInvested / quantity
+        }*/
+    }
+
+}
+
+fun Fii.createFii(updatedFii: FiiEntry) {
+    when (whenPayment(updatedFii.transactionDate)) {
+        WhenPaymentEnum.THIS_MONTH -> {
+            actualMonth.quantity = updatedFii.quantity
+            actualMonth.totalInvested = updatedFii.totalInvested
+            actualMonth.monthlyIncome = actualMonth.quantity * (this.thisMonthIncome() ?: 0.0)
+
+            // Also updates the next month values
+            nextMonth.quantity = updatedFii.quantity
+            nextMonth.totalInvested += updatedFii.totalInvested
+            nextMonth.monthlyIncome = nextMonth.quantity * (this.nextMonthIncome() ?: 0.0)
+
+            quantity = updatedFii.quantity
+            totalInvested = updatedFii.totalInvested
+            averagePrice = totalInvested / quantity
+        }
+        WhenPaymentEnum.NEXT_MONTH, WhenPaymentEnum.UNDEFINED -> {
+            nextMonth.quantity = updatedFii.quantity
+            nextMonth.totalInvested = updatedFii.totalInvested
+            nextMonth.monthlyIncome = nextMonth.quantity * (this.nextMonthIncome() ?: 0.0)
+
+            quantity = updatedFii.quantity
+            totalInvested = updatedFii.totalInvested
             averagePrice = totalInvested / quantity
         }
     }
 
 }
 
+/**
+ * Calculate the income of this month (actualMonth)
+ * by last income date and next income date found by krawler
+ */
 fun Fii.thisMonthIncome(): Double? {
     val pattern = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-    val lastIncome = with(this.lastIncome.payDay) { if (this?.contains("-") == false) this else return null }
-    val nextIncome = with(this.nextIncome.payDay) { if (this?.contains("-") == false) this else return null }
+    val lastIncome = with(this.lastIncome.payDay) { if (this?.contains("-") == false) this else null }
+    val nextIncome = with(this.nextIncome.payDay) { if (this?.contains("-") == false) this else null }
 
-    val lastIncomeDate = lastIncome.let { LocalDate.parse(it, pattern) }
-    val nextIncomeDate = nextIncome.let { LocalDate.parse(it, pattern) }
-    val actualDate = LocalDate.now()
+    val lastIncomeDate = lastIncome?.let { LocalDate.parse(it, pattern) }        // 15/04/2023
+    val nextIncomeDate = nextIncome?.let { LocalDate.parse(it, pattern) }        // 15/05/2023
+    val actualDate = LocalDate.now()                                            // 11/04/2023
 
     return if (lastIncomeDate?.monthValue == actualDate.monthValue) this.lastIncome.value
     else if (nextIncomeDate?.monthValue == actualDate.monthValue) this.nextIncome.value
@@ -96,15 +130,15 @@ fun Fii.thisMonthIncome(): Double? {
 fun Fii.nextMonthIncome(): Double? {
     val pattern = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-    val lastIncome = with(this.lastIncome.payDay) { if (this?.contains("-") == false) this else return null }
-    val nextIncome = with(this.nextIncome.payDay) { if (this?.contains("-") == false) this else return null }
+    val lastIncome = with(this.lastIncome.payDay) { if (this?.contains("-") == false) this else null }
+    val nextIncome = with(this.nextIncome.payDay) { if (this?.contains("-") == false) this else null }
 
-    val lastIncomeDate = lastIncome.let { LocalDate.parse(it, pattern) }
-    val nextIncomeDate = nextIncome.let { LocalDate.parse(it, pattern) }
+    val lastIncomeDate = lastIncome?.let { LocalDate.parse(it, pattern) }
+    val nextIncomeDate = nextIncome?.let { LocalDate.parse(it, pattern) }
     val actualDate = LocalDate.now()
 
-    return if (lastIncomeDate?.monthValue!! > actualDate.monthValue) this.lastIncome.value
-    else if (nextIncomeDate?.monthValue!! > actualDate.monthValue) this.nextIncome.value
+    return if (lastIncomeDate?.monthValue != null && lastIncomeDate.monthValue > actualDate.monthValue) this.lastIncome.value
+    else if (nextIncomeDate?.monthValue != null && nextIncomeDate.monthValue > actualDate.monthValue) this.nextIncome.value
     else null
 }
 

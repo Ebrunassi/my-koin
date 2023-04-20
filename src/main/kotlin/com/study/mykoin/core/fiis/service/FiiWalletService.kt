@@ -6,6 +6,7 @@ import com.study.mykoin.core.fiis.model.enums.WhenPaymentEnum
 import com.study.mykoin.core.fiis.storage.FiiWalletStorage
 import com.study.mykoin.core.kafka.KafkaFactory
 import com.study.mykoin.core.kafka.dispatchEvent
+import com.study.mykoin.domain.fiis.MonthInformation
 import com.study.mykoin.domain.fiis.nextMonthIncome
 import com.study.mykoin.domain.fiis.thisMonthIncome
 import com.study.mykoin.domain.fiis.whenPayment
@@ -29,13 +30,16 @@ class FiiWalletService : ConsumerHandler {
     override fun handler(key: String, record: String) =
         record.mapToFii()
             .let { fii ->
-                fiiWalletStorage.findByName(key)
-                    .map {
+                fiiWalletStorage.findByName(key).map {
                         try {
                             it?.apply {
-                                if (fii.lastIncome.value != null) { it.lastIncome = fii.lastIncome }
+                                if (fii.lastIncome.value != null) { it.lastIncome = fii.lastIncome }        // Information found by krawler
+                                if (fii.nextIncome.value != null) { it.nextIncome = fii.nextIncome }        // Information found by krawler
 
-                                if (fii.nextIncome.value != null) { it.nextIncome = fii.nextIncome }
+                                if (it.actualMonth.timeWindow != actualTimeWindow()) {                      // If the month changes, we need to get everything from nextMonth and set it to actualMonth
+                                    it.actualMonth = it.nextMonth.copy()
+                                    it.nextMonth = MonthInformation()
+                                }
 
                                 with (it.thisMonthIncome()) {
                                     it.actualMonth.monthlyIncome = (this ?: 0.0) * it.actualMonth.quantity
@@ -51,7 +55,7 @@ class FiiWalletService : ConsumerHandler {
                         it
                     }
                     .map { fiiUpdated ->
-                        fiiUpdated?.let {
+                        fiiUpdated?.let {       // Continue analizing from here, is it working?
                             fiiWalletStorage.upsert(it).map {
                                 if (it > 0) {
                                     factory.getProducer().dispatchEvent(DomainEvent.FiiInformationUpdated(fiiUpdated, fiiUpdated.userId)) // It will dispatch only those fiis which got new information from crawler

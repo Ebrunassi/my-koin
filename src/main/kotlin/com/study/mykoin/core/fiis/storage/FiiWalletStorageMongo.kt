@@ -42,14 +42,15 @@ class FiiWalletStorageMongo : FiiWalletStorage {
         return mongo.find(query, Fii::class.java)
     }
 
-    override fun findByName(name: String): Either<ServiceErrors, Fii?> {
-        return try {
+    override fun findByName(name: String): Either<ServiceErrors, Fii?> =
+        try {
             val query = Query(Criteria.where("name").`is`(name))
-            return mongo.find(query, Fii::class.java).firstOrNull().right()
+            mongo.find(query, Fii::class.java).first().right()
         } catch (e: Exception) {
-            ServiceErrors.InternalError(e.message ?: "Error in searching data by name in database: ${e.localizedMessage}").left()
+            null.right().also { logger.info("[WALLET-STORAGE] There is no FII named $name") }
+            //ServiceErrors.FiiWalletNotFound(e.message ?: "There was not found any FII with name $name").left()
         }
-    }
+
 
     override fun upsert(fii: Fii): Either<ServiceErrors, Long> =
         either.runCatching {
