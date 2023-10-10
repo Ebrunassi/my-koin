@@ -2,11 +2,11 @@ package com.study.mykoin.helper
 
 import arrow.core.Either
 import arrow.core.getOrHandle
-import com.study.mykoin.core.common.errors.ServiceErrors
-import com.study.mykoin.core.common.errors.badRequestResponse
-import com.study.mykoin.core.common.errors.errorResponse
-import com.study.mykoin.core.common.errors.internalError
-import com.study.mykoin.core.common.response.ServiceResponse
+import com.study.mykoin.usecases.ServiceErrors
+import com.study.mykoin.usecases.badRequestResponse
+import com.study.mykoin.usecases.errorResponse
+import com.study.mykoin.usecases.internalError
+import com.study.mykoin.adapters.http.api.dtos.ServiceResponse
 import org.springframework.http.HttpStatus
 import org.springframework.web.reactive.function.server.ServerResponse
 import org.springframework.web.reactive.function.server.bodyValueAndAwait

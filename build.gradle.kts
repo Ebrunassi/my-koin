@@ -64,6 +64,11 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+tasks.jar {
+    // Define the duplicate handling strategy here
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
 }

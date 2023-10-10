@@ -58,6 +58,7 @@ services:
       kafka-topcis --bootstrap-server kafka:9092 --create --if-not-exists --topic fiis_wallet_topic --replication-factor 1 --partition 3
       kafka-topcis --bootstrap-server kafka:9092 --create --if-not-exists --topic profile_topic --replication-factor 1 --partition 3
       kafka-topcis --bootstrap-server kafka:9092 --create --if-not-exists --topic domain_events_topic --replication-factor 1 --partition 3
+      kafka-topcis --bootstrap-server kafka:9092 --create --if-not-exists --topic fiis_topic --replication-factor 1 --partition 3
 
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:9092 --list
@@ -77,12 +78,13 @@ services:
       - mongo-database
     depends_on:
       - mongo-database
+      - kafka
     networks:
       - mykoin-network
 
   mongo-database:
     image: mongo
-    container_name: mongoDB-container
+    container_name: mongoDB-container-mykoin
     environment:
       MONGO_INITDB_ROOT_USERNAME: mykoin
       MONGO_INITDB_ROOT_PASSWORD: mykoin2022!
@@ -91,6 +93,8 @@ services:
       - /opt/mykoin/MongoDB/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     ports:
       - "27017:27017"
+    depends_on:
+      - kafka
     networks:
       - mykoin-network
 

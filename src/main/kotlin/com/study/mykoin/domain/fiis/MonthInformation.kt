@@ -1,6 +1,6 @@
 package com.study.mykoin.domain.fiis
 
-import com.study.mykoin.core.fiis.model.enums.CurrencyEnum
+import com.study.mykoin.domain.fiis.enums.CurrencyEnum
 import kotlinx.serialization.Serializable
 
 @Serializable
